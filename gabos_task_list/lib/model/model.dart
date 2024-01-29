@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:typed_data';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:sqfentity/sqfentity.dart';
@@ -19,6 +18,7 @@ const tablePerson = SqfEntityTable(
   fields: [
     SqfEntityField('firstName', DbType.text),
     SqfEntityField('lastName', DbType.text),
+    SqfEntityField('password', DbType.text),
     SqfEntityField('email', DbType.text),
     SqfEntityField('phone', DbType.text),
     SqfEntityField('createdDate', DbType.datetime),

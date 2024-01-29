@@ -29,12 +29,14 @@ environment:
 # versions available, run `flutter pub outdated`.
 dependencies:
   cupertino_icons: ^1.0.2
+  encrypt: ^5.0.3
   flutter:
     sdk: flutter
   flutter_datetime_picker_plus: ^2.1.0
   get: ^4.6.6
   http: ^1.1.0
   intl: ^0.18.1
+  shared_preferences: ^2.2.2
   sqfentity: ^2.4.0
   sqfentity_gen: ^2.4.0
 

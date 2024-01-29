@@ -16,11 +16,19 @@ A continuación se lista las tareas necesarias para configurar y ejecutar el pro
 
 
 ## Paquetes requeridos
+Dependencias
 1. GetX: https://pub.dev/packages/get
 2. SqfEntity: https://pub.dev/packages/sqfentity
-
+3. shared_preferences
+4. http
+5. encrypt
+6. flutter_datetime_picker_plus
+7. intl
+Dependencias de desarrollo
+1. build_runner
+2. build_verify
+3. flutter_lints
 
 ## Generación de modelo de SQFEntity
 flutter pub run build_runner build --delete-conflicting-outputs
 dart run build_runner build --delete-conflicting-outputs
-

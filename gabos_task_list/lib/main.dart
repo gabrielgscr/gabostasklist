@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:gabos_task_list/controllers/global_values_controller.dart';
+import 'package:gabos_task_list/routes/routes.dart';
+import 'package:get/get.dart';
 
 void main() => runApp(const MyApp());
 
@@ -7,16 +10,12 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    Get.put(GlobalValuesController());
+    return GetMaterialApp(
+      debugShowCheckedModeBanner: false,
       title: 'Material App',
-      home: Scaffold(
-        appBar: AppBar(
-          title: const Text('Material App Bar'),
-        ),
-        body: const Center(
-          child: Text('Hello World'),
-        ),
-      ),
+      initialRoute: 'login',
+      routes: routes,
     );
   }
 }

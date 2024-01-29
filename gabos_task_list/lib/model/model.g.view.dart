@@ -19,6 +19,7 @@ class PersonAddState extends State {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController txtFirstName = TextEditingController();
   final TextEditingController txtLastName = TextEditingController();
+  final TextEditingController txtPassword = TextEditingController();
   final TextEditingController txtEmail = TextEditingController();
   final TextEditingController txtPhone = TextEditingController();
   final TextEditingController txtCreatedDate = TextEditingController();
@@ -32,6 +33,8 @@ class PersonAddState extends State {
         persons.firstName == null ? '' : persons.firstName.toString();
     txtLastName.text =
         persons.lastName == null ? '' : persons.lastName.toString();
+    txtPassword.text =
+        persons.password == null ? '' : persons.password.toString();
     txtEmail.text = persons.email == null ? '' : persons.email.toString();
     txtPhone.text = persons.phone == null ? '' : persons.phone.toString();
     txtCreatedDate.text = persons.createdDate == null
@@ -72,6 +75,7 @@ class PersonAddState extends State {
                   children: <Widget>[
                     buildRowFirstName(),
                     buildRowLastName(),
+                    buildRowPassword(),
                     buildRowEmail(),
                     buildRowPhone(),
                     buildRowCreatedDate(),
@@ -108,6 +112,13 @@ class PersonAddState extends State {
     return TextFormField(
       controller: txtLastName,
       decoration: InputDecoration(labelText: 'LastName'),
+    );
+  }
+
+  Widget buildRowPassword() {
+    return TextFormField(
+      controller: txtPassword,
+      decoration: InputDecoration(labelText: 'Password'),
     );
   }
 
@@ -270,6 +281,7 @@ class PersonAddState extends State {
     persons
       ..firstName = txtFirstName.text
       ..lastName = txtLastName.text
+      ..password = txtPassword.text
       ..email = txtEmail.text
       ..phone = txtPhone.text
       ..createdDate = _createdDate

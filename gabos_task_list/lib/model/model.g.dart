@@ -35,6 +35,7 @@ class TablePerson extends SqfEntityTableBase {
     fields = [
       SqfEntityFieldBase('firstName', DbType.text),
       SqfEntityFieldBase('lastName', DbType.text),
+      SqfEntityFieldBase('password', DbType.text),
       SqfEntityFieldBase('email', DbType.text),
       SqfEntityFieldBase('phone', DbType.text),
       SqfEntityFieldBase('createdDate', DbType.datetime,
@@ -143,6 +144,7 @@ class Person extends TableBase {
       {this.personId,
       this.firstName,
       this.lastName,
+      this.password,
       this.email,
       this.phone,
       this.createdDate,
@@ -151,12 +153,20 @@ class Person extends TableBase {
     _setDefaultValues();
     softDeleteActivated = true;
   }
-  Person.withFields(this.firstName, this.lastName, this.email, this.phone,
-      this.createdDate, this.updatedDate, this.isDeleted) {
+  Person.withFields(this.firstName, this.lastName, this.password, this.email,
+      this.phone, this.createdDate, this.updatedDate, this.isDeleted) {
     _setDefaultValues();
   }
-  Person.withId(this.personId, this.firstName, this.lastName, this.email,
-      this.phone, this.createdDate, this.updatedDate, this.isDeleted) {
+  Person.withId(
+      this.personId,
+      this.firstName,
+      this.lastName,
+      this.password,
+      this.email,
+      this.phone,
+      this.createdDate,
+      this.updatedDate,
+      this.isDeleted) {
     _setDefaultValues();
   }
   // fromMap v2.0
@@ -170,6 +180,9 @@ class Person extends TableBase {
     }
     if (o['lastName'] != null) {
       lastName = o['lastName'].toString();
+    }
+    if (o['password'] != null) {
+      password = o['password'].toString();
     }
     if (o['email'] != null) {
       email = o['email'].toString();
@@ -197,6 +210,7 @@ class Person extends TableBase {
   int? personId;
   String? firstName;
   String? lastName;
+  String? password;
   String? email;
   String? phone;
   DateTime? createdDate;
@@ -244,6 +258,9 @@ class Person extends TableBase {
     if (lastName != null || !forView) {
       map['lastName'] = lastName;
     }
+    if (password != null || !forView) {
+      map['password'] = password;
+    }
     if (email != null || !forView) {
       map['email'] = email;
     }
@@ -287,6 +304,9 @@ class Person extends TableBase {
     }
     if (lastName != null || !forView) {
       map['lastName'] = lastName;
+    }
+    if (password != null || !forView) {
+      map['password'] = password;
     }
     if (email != null || !forView) {
       map['email'] = email;
@@ -342,6 +362,7 @@ class Person extends TableBase {
     return [
       firstName,
       lastName,
+      password,
       email,
       phone,
       createdDate != null ? createdDate!.millisecondsSinceEpoch : null,
@@ -356,6 +377,7 @@ class Person extends TableBase {
       personId,
       firstName,
       lastName,
+      password,
       email,
       phone,
       createdDate != null ? createdDate!.millisecondsSinceEpoch : null,
@@ -540,11 +562,12 @@ class Person extends TableBase {
   Future<int?> upsert({bool ignoreBatch = true}) async {
     try {
       final result = await _mnPerson.rawInsert(
-          'INSERT OR REPLACE INTO persons (personId, firstName, lastName, email, phone, createdDate, updatedDate,isDeleted)  VALUES (?,?,?,?,?,?,?,?)',
+          'INSERT OR REPLACE INTO persons (personId, firstName, lastName, password, email, phone, createdDate, updatedDate,isDeleted)  VALUES (?,?,?,?,?,?,?,?,?)',
           [
             personId,
             firstName,
             lastName,
+            password,
             email,
             phone,
             createdDate != null ? createdDate!.millisecondsSinceEpoch : null,
@@ -577,7 +600,7 @@ class Person extends TableBase {
   Future<BoolCommitResult> upsertAll(List<Person> persons,
       {bool? exclusive, bool? noResult, bool? continueOnError}) async {
     final results = await _mnPerson.rawInsertAll(
-        'INSERT OR REPLACE INTO persons (personId, firstName, lastName, email, phone, createdDate, updatedDate,isDeleted)  VALUES (?,?,?,?,?,?,?,?)',
+        'INSERT OR REPLACE INTO persons (personId, firstName, lastName, password, email, phone, createdDate, updatedDate,isDeleted)  VALUES (?,?,?,?,?,?,?,?,?)',
         persons,
         exclusive: exclusive,
         noResult: noResult,
@@ -877,6 +900,11 @@ class PersonFilterBuilder extends ConjunctionBase {
   PersonField? _lastName;
   PersonField get lastName {
     return _lastName = _setField(_lastName, 'lastName', DbType.text);
+  }
+
+  PersonField? _password;
+  PersonField get password {
+    return _password = _setField(_password, 'password', DbType.text);
   }
 
   PersonField? _email;
@@ -1242,6 +1270,12 @@ class PersonFields {
   static TableField get lastName {
     return _fLastName =
         _fLastName ?? SqlSyntax.setField(_fLastName, 'lastName', DbType.text);
+  }
+
+  static TableField? _fPassword;
+  static TableField get password {
+    return _fPassword =
+        _fPassword ?? SqlSyntax.setField(_fPassword, 'password', DbType.text);
   }
 
   static TableField? _fEmail;
