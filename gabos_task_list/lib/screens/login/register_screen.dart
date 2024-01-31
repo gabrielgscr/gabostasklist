@@ -11,7 +11,7 @@ class RegisterScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    RegisterController c = Get.put(RegisterController());
+    Get.put(RegisterController());
     return Scaffold(
       body: LoginBackground(
         child: SingleChildScrollView(
