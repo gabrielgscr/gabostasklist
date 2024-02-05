@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:gabos_task_list/controllers/register_controller.dart';
+import 'package:gabos_task_list/model/generic_response.dart';
 import 'package:gabos_task_list/screens/login/login_screen.dart';
 import 'package:gabos_task_list/tools/input_decoratios.dart';
 import 'package:gabos_task_list/tools/tools.dart';
@@ -93,9 +94,10 @@ class _RegisterForm extends StatelessWidget {
             ? null
             : () async {
                 c.loading.value = true;
-                await c.createUser();
+                GenericResponse response = await c.createUser();
+                showSnackbar(response.responseText);
                 c.loading.value = false;
-                showSnackbar("Usuario creado correctamente");
+                //showSnackbar("Usuario creado correctamente");
                 Get.off(const LoginScreen());
               },
         child: Container(

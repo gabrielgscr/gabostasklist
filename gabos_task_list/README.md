@@ -24,11 +24,16 @@ Dependencias
 5. encrypt
 6. flutter_datetime_picker_plus
 7. intl
+
 Dependencias de desarrollo
 1. build_runner
 2. build_verify
 3. flutter_lints
+4. flutter_native_splash: ^2.3.7
 
 ## Generación de modelo de SQFEntity
 flutter pub run build_runner build --delete-conflicting-outputs
 dart run build_runner build --delete-conflicting-outputs
+
+#Generar la splash screen
+dart run flutter_native_splash:create
