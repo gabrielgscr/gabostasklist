@@ -61,24 +61,22 @@ class _RegisterForm extends StatelessWidget {
   Widget build(BuildContext context) {
     //final loginForm = Provider.of<LoginFormProvider>(context);
 
-    return Container(
-      child: Form(
-        //key: loginForm.formKey,
-        autovalidateMode: AutovalidateMode.onUserInteraction,
+    return Form(
+      //key: loginForm.formKey,
+      autovalidateMode: AutovalidateMode.onUserInteraction,
 
-        child: Column(
-          children: [
-            _nameBox(),
-            const SizedBox(height: 30),
-            _lastNameBox(),
-            const SizedBox(height: 30),
-            _emailBox(),
-            const SizedBox(height: 30),
-            passwordBox(),
-            const SizedBox(height: 30),
-            _registerButton(),
-          ],
-        ),
+      child: Column(
+        children: [
+          _nameBox(),
+          const SizedBox(height: 30),
+          _lastNameBox(),
+          const SizedBox(height: 30),
+          _emailBox(),
+          const SizedBox(height: 30),
+          passwordBox(),
+          const SizedBox(height: 30),
+          _registerButton(),
+        ],
       ),
     );
   }
