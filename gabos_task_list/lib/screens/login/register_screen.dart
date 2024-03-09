@@ -15,44 +15,54 @@ class RegisterScreen extends StatelessWidget {
     Get.put(RegisterController());
     return Scaffold(
       body: LoginBackground(
-        child: SingleChildScrollView(
-          child: Column(
-            children: [
-              const SizedBox(height: 250),
-              CardContainer(
-                  child: Column(
-                children: [
-                  const SizedBox(height: 10),
-                  Row(
-                    children: [
-                      IconButton(
-                          onPressed: () => Get.off(const LoginScreen()),
-                          icon: const Icon(Icons.arrow_back_ios_new_rounded)),
-                      Text('Crear cuenta',
-                          style: Theme.of(context).textTheme.headlineMedium),
-                    ],
-                  ),
-                  const SizedBox(height: 30),
-                  _RegisterForm(),
-                ],
-              )),
-              const SizedBox(height: 50),
-              TextButton(
-                  onPressed: () => Get.off(const LoginScreen()),
-                  style: ButtonStyle(
-                      overlayColor: MaterialStateProperty.all(
-                          Colors.indigo.withOpacity(0.1)),
-                      shape: MaterialStateProperty.all(const StadiumBorder())),
-                  child: const Text(
-                    '¿Ya tienes una cuenta?',
-                    style: TextStyle(fontSize: 18, color: Colors.black87),
-                  )),
-              const SizedBox(height: 50),
-            ],
+        child: SafeArea(
+          child: SingleChildScrollView(
+            child: Column(
+              children: [
+                const SizedBox(height: 75),
+                _registerFrm(context),
+                const SizedBox(height: 50),
+                _registerBtn(),
+                const SizedBox(height: 50),
+              ],
+            ),
           ),
         ),
       ),
     );
+  }
+
+  Widget _registerBtn() {
+    return TextButton(
+        onPressed: () => Get.off(const LoginScreen()),
+        style: ButtonStyle(
+            overlayColor:
+                MaterialStateProperty.all(Colors.indigo.withOpacity(0.1)),
+            shape: MaterialStateProperty.all(const StadiumBorder())),
+        child: const Text(
+          '¿Ya tienes una cuenta?',
+          style: TextStyle(fontSize: 18, color: Colors.white70),
+        ));
+  }
+
+  Widget _registerFrm(BuildContext context) {
+    return CardContainer(
+        child: Column(
+      children: [
+        const SizedBox(height: 10),
+        Row(
+          children: [
+            IconButton(
+                onPressed: () => Get.off(const LoginScreen()),
+                icon: const Icon(Icons.arrow_back_ios_new_rounded)),
+            Text('Crear cuenta',
+                style: Theme.of(context).textTheme.headlineMedium),
+          ],
+        ),
+        const SizedBox(height: 30),
+        _RegisterForm(),
+      ],
+    ));
   }
 }
 

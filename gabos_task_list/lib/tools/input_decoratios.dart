@@ -6,8 +6,11 @@ class InputDecorations {
       required String labelText,
       IconData? prefixIcon}) {
     return InputDecoration(
-        enabledBorder: const UnderlineInputBorder(
-          borderSide: BorderSide(color: Colors.deepPurple),
+        filled: true,
+        fillColor: Colors.white,
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10.0),
+          borderSide: const BorderSide(color: Colors.blue, width: 2.0),
         ),
         focusedBorder: const UnderlineInputBorder(
             borderSide: BorderSide(color: Colors.deepPurple, width: 2)),

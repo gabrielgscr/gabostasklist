@@ -37,3 +37,6 @@ dart run build_runner build --delete-conflicting-outputs
 
 #Generar la splash screen
 dart run flutter_native_splash:create
+
+#Agradecimiento a Freepik
+Las imagenes se tomaron de Freepik
