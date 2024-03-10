@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:gabos_task_list/controllers/register_controller.dart';
 import 'package:gabos_task_list/model/generic_response.dart';
 import 'package:gabos_task_list/screens/login/login_screen.dart';
-import 'package:gabos_task_list/tools/input_decoratios.dart';
+import 'package:gabos_task_list/tools/input_decorations.dart';
 import 'package:gabos_task_list/tools/tools.dart';
+import 'package:gabos_task_list/widgets/theme.dart';
 import 'package:gabos_task_list/widgets/widgets.dart';
 import 'package:get/get.dart';
 
@@ -97,7 +98,7 @@ class _RegisterForm extends StatelessWidget {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         disabledColor: Colors.grey,
         elevation: 0,
-        color: Colors.deepPurple,
+        color: strongBlue,
         onPressed: c.loading.value
             ? null
             : () async {
@@ -122,7 +123,7 @@ class _RegisterForm extends StatelessWidget {
     return TextFormField(
       autocorrect: false,
       keyboardType: TextInputType.emailAddress,
-      decoration: InputDecorations.authInputDecoration(
+      decoration: InputDecorations.defaultInputDecoration(
           hintText: 'Nombre',
           labelText: 'Nombre',
           prefixIcon: Icons.person_outline),
@@ -140,7 +141,7 @@ class _RegisterForm extends StatelessWidget {
     return TextFormField(
       autocorrect: false,
       keyboardType: TextInputType.emailAddress,
-      decoration: InputDecorations.authInputDecoration(
+      decoration: InputDecorations.defaultInputDecoration(
           hintText: 'Apellido',
           labelText: 'Apellido',
           prefixIcon: Icons.person_outline),
@@ -159,7 +160,7 @@ class _RegisterForm extends StatelessWidget {
       autocorrect: false,
       obscureText: true,
       keyboardType: TextInputType.emailAddress,
-      decoration: InputDecorations.authInputDecoration(
+      decoration: InputDecorations.defaultInputDecoration(
           hintText: '*****',
           labelText: 'Contraseña',
           prefixIcon: Icons.lock_outline),
@@ -180,7 +181,7 @@ class _RegisterForm extends StatelessWidget {
     return TextFormField(
       autocorrect: false,
       keyboardType: TextInputType.emailAddress,
-      decoration: InputDecorations.authInputDecoration(
+      decoration: InputDecorations.defaultInputDecoration(
           hintText: 'name@domain.com',
           labelText: 'Correo electrónico',
           prefixIcon: Icons.alternate_email_rounded),

@@ -1,37 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:gabos_task_list/controllers/global_values_controller.dart';
 import 'package:gabos_task_list/controllers/login_controller.dart';
 import 'package:gabos_task_list/model/generic_response.dart';
+import 'package:gabos_task_list/model/model.dart';
 import 'package:gabos_task_list/screens/login/register_screen.dart';
-import 'package:gabos_task_list/tools/input_decoratios.dart';
+import 'package:gabos_task_list/screens/dashboard/welcome_screen.dart';
+import 'package:gabos_task_list/tools/input_decorations.dart';
 import 'package:gabos_task_list/tools/tools.dart';
+import 'package:gabos_task_list/widgets/theme.dart';
 import 'package:gabos_task_list/widgets/widgets.dart';
 import 'package:get/get.dart';
 
 class LoginScreen extends StatelessWidget {
   const LoginScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    Get.put(LoginController());
-    return Scaffold(
-        body: LoginBackground(
-            child: SafeArea(
-      child: SingleChildScrollView(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const SizedBox(
-              height: 75,
-            ),
-            _loginForm(context),
-            const SizedBox(height: 50),
-            _newAccount(),
-            const SizedBox(height: 50),
-          ],
-        ),
-      ),
-    )));
-  }
 
   Widget _newAccount() {
     return TextButton(
@@ -57,44 +38,57 @@ class LoginScreen extends StatelessWidget {
       ],
     ));
   }
+
+  @override
+  Widget build(BuildContext context) {
+    Get.put(LoginController());
+    return Scaffold(
+        body: LoginBackground(
+            child: SafeArea(
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const SizedBox(
+              height: 75,
+            ),
+            _loginForm(context),
+            const SizedBox(height: 50),
+            _newAccount(),
+            const SizedBox(height: 50),
+          ],
+        ),
+      ),
+    )));
+  }
 }
 
 class _LoginForm extends StatelessWidget {
-  final _formKey = GlobalKey<FormState>();
-  final usernameController = TextEditingController();
   final passwordController = TextEditingController();
-  @override
-  Widget build(BuildContext context) {
-    return Form(
-      key: _formKey,
-      autovalidateMode: AutovalidateMode.onUserInteraction,
-      child: Column(
-        children: [
-          _emailField(),
-          const SizedBox(height: 30),
-          _passwordField(),
-          const SizedBox(height: 30),
-          _loginButton()
-        ],
-      ),
-    );
-  }
+  final usernameController = TextEditingController();
+
+  final _formKey = GlobalKey<FormState>();
 
   Widget _loginButton() {
     final LoginController c = Get.find<LoginController>();
+    final GlobalValuesController g = Get.find<GlobalValuesController>();
     return MaterialButton(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         disabledColor: Colors.grey,
         elevation: 0,
-        color: Colors.deepPurple,
+        color: strongBlue,
         onPressed: () async {
           if (_formKey.currentState!.validate()) {
             c.username.value = usernameController.text;
             c.password.value = passwordController.text;
             GenericResponse response = await c.login();
+            Person? person = response.responseObject as Person?;
             if (response.responseCode == 1) {
               //showSnackbar(response.responseText);
-              Get.off(const LoginScreen());
+              g.username = c.username.value;
+              g.personId.value = person!.personId!;
+
+              Get.off(const WelcomeScreen());
             } else {
               showSnackbar(response.responseText);
             }
@@ -118,7 +112,7 @@ class _LoginForm extends StatelessWidget {
       autocorrect: false,
       obscureText: true,
       keyboardType: TextInputType.emailAddress,
-      decoration: InputDecorations.authInputDecoration(
+      decoration: InputDecorations.defaultInputDecoration(
           hintText: '*****',
           labelText: 'Contraseña',
           prefixIcon: Icons.lock_outline),
@@ -136,7 +130,7 @@ class _LoginForm extends StatelessWidget {
       controller: usernameController,
       autocorrect: false,
       keyboardType: TextInputType.emailAddress,
-      decoration: InputDecorations.authInputDecoration(
+      decoration: InputDecorations.defaultInputDecoration(
         hintText: 'name@domain.com',
         labelText: 'Correo electrónico',
         prefixIcon: Icons.alternate_email_rounded,
@@ -152,5 +146,37 @@ class _LoginForm extends StatelessWidget {
             : 'El valor ingresado no luce como un correo';
       },
     );
+  }
+
+  SwitchListTile _rememberMeCheck() {
+    final LoginController c = Get.find<LoginController>();
+    return SwitchListTile(
+          title: const Text('Recuérdame'), 
+          value: c.remember.value, 
+          onChanged: (value) {
+            c.remember.value = value;
+          },
+          activeColor: Colors.white,
+        );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Obx(() => Form(
+      key: _formKey,
+      autovalidateMode: AutovalidateMode.onUserInteraction,
+      child: Column(
+        children: [
+          _emailField(),
+          const SizedBox(height: 30),
+          _passwordField(),
+          const SizedBox(height: 30),
+          //Remember me
+          _rememberMeCheck(),
+          const SizedBox(height: 30),
+          _loginButton()
+        ],
+      ),
+    ));
   }
 }

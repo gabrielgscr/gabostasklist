@@ -23,7 +23,7 @@ Dependencias
 4. http
 5. encrypt
 6. flutter_datetime_picker_plus
-7. intl
+7. intl 018
 
 Dependencias de desarrollo
 1. build_runner
@@ -40,3 +40,4 @@ dart run flutter_native_splash:create
 
 #Agradecimiento a Freepik
 Las imagenes se tomaron de Freepik
+

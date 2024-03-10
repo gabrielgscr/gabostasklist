@@ -33,11 +33,10 @@ class TablePerson extends SqfEntityTableBase {
 
     // declare fields
     fields = [
-      SqfEntityFieldBase('firstName', DbType.text),
-      SqfEntityFieldBase('lastName', DbType.text),
-      SqfEntityFieldBase('password', DbType.text),
-      SqfEntityFieldBase('email', DbType.text),
-      SqfEntityFieldBase('phone', DbType.text),
+      SqfEntityFieldBase('firstName', DbType.text, isNotNull: true),
+      SqfEntityFieldBase('lastName', DbType.text, isNotNull: true),
+      SqfEntityFieldBase('password', DbType.text, isNotNull: true),
+      SqfEntityFieldBase('email', DbType.text, isUnique: true, isNotNull: true),
       SqfEntityFieldBase('createdDate', DbType.datetime,
           minValue: DateTime.parse('1900-01-01')),
       SqfEntityFieldBase('updatedDate', DbType.datetime,
@@ -146,7 +145,6 @@ class Person extends TableBase {
       this.lastName,
       this.password,
       this.email,
-      this.phone,
       this.createdDate,
       this.updatedDate,
       this.isDeleted}) {
@@ -154,19 +152,11 @@ class Person extends TableBase {
     softDeleteActivated = true;
   }
   Person.withFields(this.firstName, this.lastName, this.password, this.email,
-      this.phone, this.createdDate, this.updatedDate, this.isDeleted) {
+      this.createdDate, this.updatedDate, this.isDeleted) {
     _setDefaultValues();
   }
-  Person.withId(
-      this.personId,
-      this.firstName,
-      this.lastName,
-      this.password,
-      this.email,
-      this.phone,
-      this.createdDate,
-      this.updatedDate,
-      this.isDeleted) {
+  Person.withId(this.personId, this.firstName, this.lastName, this.password,
+      this.email, this.createdDate, this.updatedDate, this.isDeleted) {
     _setDefaultValues();
   }
   // fromMap v2.0
@@ -186,9 +176,6 @@ class Person extends TableBase {
     }
     if (o['email'] != null) {
       email = o['email'].toString();
-    }
-    if (o['phone'] != null) {
-      phone = o['phone'].toString();
     }
     if (o['createdDate'] != null) {
       createdDate = int.tryParse(o['createdDate'].toString()) != null
@@ -212,7 +199,6 @@ class Person extends TableBase {
   String? lastName;
   String? password;
   String? email;
-  String? phone;
   DateTime? createdDate;
   DateTime? updatedDate;
   bool? isDeleted;
@@ -264,9 +250,6 @@ class Person extends TableBase {
     if (email != null || !forView) {
       map['email'] = email;
     }
-    if (phone != null || !forView) {
-      map['phone'] = phone;
-    }
     if (createdDate != null) {
       map['createdDate'] = forJson
           ? createdDate!.toString()
@@ -310,9 +293,6 @@ class Person extends TableBase {
     }
     if (email != null || !forView) {
       map['email'] = email;
-    }
-    if (phone != null || !forView) {
-      map['phone'] = phone;
     }
     if (createdDate != null) {
       map['createdDate'] = forJson
@@ -364,7 +344,6 @@ class Person extends TableBase {
       lastName,
       password,
       email,
-      phone,
       createdDate != null ? createdDate!.millisecondsSinceEpoch : null,
       updatedDate != null ? updatedDate!.millisecondsSinceEpoch : null,
       isDeleted
@@ -379,7 +358,6 @@ class Person extends TableBase {
       lastName,
       password,
       email,
-      phone,
       createdDate != null ? createdDate!.millisecondsSinceEpoch : null,
       updatedDate != null ? updatedDate!.millisecondsSinceEpoch : null,
       isDeleted
@@ -562,14 +540,13 @@ class Person extends TableBase {
   Future<int?> upsert({bool ignoreBatch = true}) async {
     try {
       final result = await _mnPerson.rawInsert(
-          'INSERT OR REPLACE INTO persons (personId, firstName, lastName, password, email, phone, createdDate, updatedDate,isDeleted)  VALUES (?,?,?,?,?,?,?,?,?)',
+          'INSERT OR REPLACE INTO persons (personId, firstName, lastName, password, email, createdDate, updatedDate,isDeleted)  VALUES (?,?,?,?,?,?,?,?)',
           [
             personId,
             firstName,
             lastName,
             password,
             email,
-            phone,
             createdDate != null ? createdDate!.millisecondsSinceEpoch : null,
             updatedDate != null ? updatedDate!.millisecondsSinceEpoch : null,
             isDeleted
@@ -600,7 +577,7 @@ class Person extends TableBase {
   Future<BoolCommitResult> upsertAll(List<Person> persons,
       {bool? exclusive, bool? noResult, bool? continueOnError}) async {
     final results = await _mnPerson.rawInsertAll(
-        'INSERT OR REPLACE INTO persons (personId, firstName, lastName, password, email, phone, createdDate, updatedDate,isDeleted)  VALUES (?,?,?,?,?,?,?,?,?)',
+        'INSERT OR REPLACE INTO persons (personId, firstName, lastName, password, email, createdDate, updatedDate,isDeleted)  VALUES (?,?,?,?,?,?,?,?)',
         persons,
         exclusive: exclusive,
         noResult: noResult,
@@ -910,11 +887,6 @@ class PersonFilterBuilder extends ConjunctionBase {
   PersonField? _email;
   PersonField get email {
     return _email = _setField(_email, 'email', DbType.text);
-  }
-
-  PersonField? _phone;
-  PersonField get phone {
-    return _phone = _setField(_phone, 'phone', DbType.text);
   }
 
   PersonField? _createdDate;
@@ -1282,12 +1254,6 @@ class PersonFields {
   static TableField get email {
     return _fEmail =
         _fEmail ?? SqlSyntax.setField(_fEmail, 'email', DbType.text);
-  }
-
-  static TableField? _fPhone;
-  static TableField get phone {
-    return _fPhone =
-        _fPhone ?? SqlSyntax.setField(_fPhone, 'phone', DbType.text);
   }
 
   static TableField? _fCreatedDate;

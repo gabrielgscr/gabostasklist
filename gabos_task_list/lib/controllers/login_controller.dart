@@ -3,9 +3,10 @@ import 'package:gabos_task_list/model/model.dart';
 import 'package:gabos_task_list/tools/password_encryption.dart';
 import 'package:get/get.dart';
 
-class LoginController extends RxController {
+class LoginController extends GetxController {
   var username = ''.obs;
   var password = ''.obs;
+  var remember = false.obs;
 
   Future<GenericResponse> login() async {
     if (username.value.isEmpty || password.value.isEmpty) {
@@ -18,7 +19,7 @@ class LoginController extends RxController {
       } else {
         String cyphPass = PasswordEncryption().encryptPassword(password.value);
         if (person.password == cyphPass) {
-          return GenericResponse(1, 'Usuario autenticado');
+          return GenericResponse(1, 'Usuario autenticado', responseObject: person);
         } else {
           return GenericResponse(-1, 'Usuario y/o contraseña incorrecta');
         }

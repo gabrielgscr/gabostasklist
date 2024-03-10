@@ -21,7 +21,6 @@ class PersonAddState extends State {
   final TextEditingController txtLastName = TextEditingController();
   final TextEditingController txtPassword = TextEditingController();
   final TextEditingController txtEmail = TextEditingController();
-  final TextEditingController txtPhone = TextEditingController();
   final TextEditingController txtCreatedDate = TextEditingController();
   final TextEditingController txtTimeForCreatedDate = TextEditingController();
   final TextEditingController txtUpdatedDate = TextEditingController();
@@ -36,7 +35,6 @@ class PersonAddState extends State {
     txtPassword.text =
         persons.password == null ? '' : persons.password.toString();
     txtEmail.text = persons.email == null ? '' : persons.email.toString();
-    txtPhone.text = persons.phone == null ? '' : persons.phone.toString();
     txtCreatedDate.text = persons.createdDate == null
         ? ''
         : UITools.convertDate(persons.createdDate!);
@@ -77,7 +75,6 @@ class PersonAddState extends State {
                     buildRowLastName(),
                     buildRowPassword(),
                     buildRowEmail(),
-                    buildRowPhone(),
                     buildRowCreatedDate(),
                     buildRowUpdatedDate(),
                     TextButton(
@@ -103,6 +100,12 @@ class PersonAddState extends State {
 
   Widget buildRowFirstName() {
     return TextFormField(
+      validator: (value) {
+        if (value == null || value.isEmpty) {
+          return 'Please enter FirstName';
+        }
+        return null;
+      },
       controller: txtFirstName,
       decoration: InputDecoration(labelText: 'FirstName'),
     );
@@ -110,6 +113,12 @@ class PersonAddState extends State {
 
   Widget buildRowLastName() {
     return TextFormField(
+      validator: (value) {
+        if (value == null || value.isEmpty) {
+          return 'Please enter LastName';
+        }
+        return null;
+      },
       controller: txtLastName,
       decoration: InputDecoration(labelText: 'LastName'),
     );
@@ -117,6 +126,12 @@ class PersonAddState extends State {
 
   Widget buildRowPassword() {
     return TextFormField(
+      validator: (value) {
+        if (value == null || value.isEmpty) {
+          return 'Please enter Password';
+        }
+        return null;
+      },
       controller: txtPassword,
       decoration: InputDecoration(labelText: 'Password'),
     );
@@ -124,15 +139,14 @@ class PersonAddState extends State {
 
   Widget buildRowEmail() {
     return TextFormField(
+      validator: (value) {
+        if (value == null || value.isEmpty) {
+          return 'Please enter Email';
+        }
+        return null;
+      },
       controller: txtEmail,
       decoration: InputDecoration(labelText: 'Email'),
-    );
-  }
-
-  Widget buildRowPhone() {
-    return TextFormField(
-      controller: txtPhone,
-      decoration: InputDecoration(labelText: 'Phone'),
     );
   }
 
@@ -283,7 +297,6 @@ class PersonAddState extends State {
       ..lastName = txtLastName.text
       ..password = txtPassword.text
       ..email = txtEmail.text
-      ..phone = txtPhone.text
       ..createdDate = _createdDate
       ..updatedDate = _updatedDate;
     await persons.save();
