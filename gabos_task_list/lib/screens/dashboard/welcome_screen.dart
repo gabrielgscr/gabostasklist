@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:gabos_task_list/controllers/global_values_controller.dart';
+import 'package:gabos_task_list/controllers/welcome_controller.dart';
 import 'package:gabos_task_list/screens/tasks/new_task_form.dart';
+import 'package:gabos_task_list/screens/tasks/task_main_list.dart';
 import 'package:gabos_task_list/widgets/custom_app_bar.dart';
 import 'package:gabos_task_list/widgets/theme.dart';
 import 'package:get/get.dart';
@@ -56,13 +57,15 @@ class WelcomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    WelcomeController c = Get.put(WelcomeController());
     return Scaffold(
       appBar: _appBar(),
-      body: const Center(
-        child: Text(
-          'Welcome to the App!',
-          style: TextStyle(fontSize: 24),
-        ),
+      body: PageView(
+        physics: const NeverScrollableScrollPhysics(),
+        controller: c.pageController,
+        children: const [
+          TaskMainList()
+        ],
       ),
       bottomNavigationBar: const CustomBottomNavigationBar()
     );
@@ -76,7 +79,7 @@ class CustomBottomNavigationBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    GlobalValuesController c = Get.find();
+    WelcomeController c = Get.find();
     return Obx(() => BottomNavigationBar(
       currentIndex: c.currentPage.value,
       selectedItemColor: strongBlue,

@@ -6,6 +6,7 @@ class NewTaskController extends GetxController{
   var description = ''.obs;
   var dueDate = DateTime.now().obs;
   var title = ''.obs;
+  var enabledHours = true.obs;
 
   Future<GenericResponse> createNewTask(int personId) async {
     try {
@@ -13,6 +14,7 @@ class NewTaskController extends GetxController{
         title: title.value,
         description: description.value,
         dueDate: dueDate.value,
+        allDayTask: !enabledHours.value,
         createdDate: DateTime.now(),
         updatedDate: DateTime.now(),
         personId: personId

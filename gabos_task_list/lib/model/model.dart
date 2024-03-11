@@ -35,6 +35,7 @@ const tableTask = SqfEntityTable(
     SqfEntityField('description', DbType.text),
     SqfEntityField('dueDate', DbType.datetime),
     SqfEntityField('isCompleted', DbType.bool, defaultValue: false),
+    SqfEntityField('allDayTask', DbType.bool, defaultValue: false),
     SqfEntityField('createdDate', DbType.datetime),
     SqfEntityField('updatedDate', DbType.datetime),
     //relation with person table

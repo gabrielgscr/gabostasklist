@@ -3,7 +3,7 @@ import 'package:get/get.dart';
 class GlobalValuesController extends GetxController {
   var _username = ''.obs;
   var loading = false.obs;
-  var currentPage = 0.obs;
+  
   var personId = 0.obs;
 
   String get username => _username.value;

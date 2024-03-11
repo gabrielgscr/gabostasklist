@@ -5,6 +5,7 @@ import 'package:gabos_task_list/model/generic_response.dart';
 import 'package:gabos_task_list/tools/input_decorations.dart';
 import 'package:gabos_task_list/tools/tools.dart';
 import 'package:gabos_task_list/widgets/custom_app_bar.dart';
+import 'package:gabos_task_list/widgets/theme.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 
@@ -102,8 +103,9 @@ class NewTasKForm extends StatelessWidget {
   }
 
   GestureDetector _taskDueTime(BuildContext context) {
+    NewTaskController newTaskController = Get.find<NewTaskController>();
     return GestureDetector(
-      onTap: () async {
+      onTap: !newTaskController.enabledHours.value ? null : () async {
         final TimeOfDay? pickedTime = await _selectTime(context);
 
         if (pickedTime != null) {
@@ -122,6 +124,7 @@ class NewTasKForm extends StatelessWidget {
       child: AbsorbPointer(
         child: TextFormField(
           readOnly: true,
+          enabled: newTaskController.enabledHours.value,
           controller: _timeController,
           decoration: InputDecorations.defaultInputDecoration(
             labelText: 'Hora de vencimiento',
@@ -136,33 +139,54 @@ class NewTasKForm extends StatelessWidget {
     );
   }
 
+  IconButton _saveTaskButton(NewTaskController newTaskController, GlobalValuesController globalValuesController) {
+    return IconButton(
+            onPressed: () async {
+              if (_formKey.currentState!.validate()) {
+                // Guardar la tarea
+                newTaskController.title.value = _titleController.text;
+                newTaskController.description.value = _descriptionController.text;
+                newTaskController.dueDate.value = DateTime.parse(
+                  '${_dateController.text} ${newTaskController.enabledHours.value ? _timeController.text : "23:59:59"}',
+                );
+                GenericResponse response = await newTaskController.createNewTask(globalValuesController.personId.value);
+                if (response.responseCode == 1) {
+                  Get.back();
+                }
+                showSnackbar(response.responseText);
+              }
+            },
+            icon: const Icon(Icons.save),
+          );
+  }
+
+  _createEnabledHourSwitch() {
+    return Row(
+      children: [
+        const Text('Hora habilitada'),
+        const SizedBox(width: 10.0,),
+        Obx(() => Switch(
+          value: Get.find<NewTaskController>().enabledHours.value,
+          onChanged: (value) {
+            Get.find<NewTaskController>().enabledHours.value = value;
+          },
+          activeColor: Colors.white,
+          activeTrackColor: strongBlue,
+        )),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     NewTaskController newTaskController = Get.put(NewTaskController());
     GlobalValuesController globalValuesController = Get.find<GlobalValuesController>();
-    return SafeArea(
+    return Obx(() => SafeArea(
       child: Scaffold(
         appBar: CustomAppBar(
           title: 'Nueva tarea',
           actions: [
-            IconButton(
-              onPressed: () async {
-                if (_formKey.currentState!.validate()) {
-                  // Guardar la tarea
-                  newTaskController.title.value = _titleController.text;
-                  newTaskController.description.value = _descriptionController.text;
-                  newTaskController.dueDate.value = DateTime.parse(
-                    '${_dateController.text} ${_timeController.text}',
-                  );
-                  GenericResponse response = await newTaskController.createNewTask(globalValuesController.personId.value);
-                  if (response.responseCode == 1) {
-                    Get.back();
-                  }
-                  showSnackbar(response.responseText);
-                }
-              },
-              icon: const Icon(Icons.save),
-            ),
+            _saveTaskButton(newTaskController, globalValuesController),
           ],
         ),
         body: SingleChildScrollView(
@@ -174,18 +198,20 @@ class NewTasKForm extends StatelessWidget {
               child: Column(
                 children: [
                   _taskName(),
-                  const SizedBox(height: 16.0),
+                  defaultVSpace,
                   _taskDescription(),
-                  const SizedBox(height: 16.0),
+                  defaultVSpace,
                   _taskDueDate(context),
-                  const SizedBox(height: 16.0),
-                  _taskDueTime(context)
+                  defaultVSpace,
+                  _taskDueTime(context),
+                  defaultVSpace,
+                  _createEnabledHourSwitch(),
                 ],
               ),
             ),
           )
         ),
       ),
-    );
+    ));
   }
 }

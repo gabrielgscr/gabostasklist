@@ -67,6 +67,7 @@ class TableTask extends SqfEntityTableBase {
       SqfEntityFieldBase('dueDate', DbType.datetime,
           minValue: DateTime.parse('1900-01-01')),
       SqfEntityFieldBase('isCompleted', DbType.bool, defaultValue: false),
+      SqfEntityFieldBase('allDayTask', DbType.bool, defaultValue: false),
       SqfEntityFieldBase('createdDate', DbType.datetime,
           minValue: DateTime.parse('1900-01-01')),
       SqfEntityFieldBase('updatedDate', DbType.datetime,
@@ -1297,6 +1298,7 @@ class Task extends TableBase {
       this.description,
       this.dueDate,
       this.isCompleted,
+      this.allDayTask,
       this.createdDate,
       this.updatedDate,
       this.personId,
@@ -1304,8 +1306,16 @@ class Task extends TableBase {
     _setDefaultValues();
     softDeleteActivated = true;
   }
-  Task.withFields(this.title, this.description, this.dueDate, this.isCompleted,
-      this.createdDate, this.updatedDate, this.personId, this.isDeleted) {
+  Task.withFields(
+      this.title,
+      this.description,
+      this.dueDate,
+      this.isCompleted,
+      this.allDayTask,
+      this.createdDate,
+      this.updatedDate,
+      this.personId,
+      this.isDeleted) {
     _setDefaultValues();
   }
   Task.withId(
@@ -1314,6 +1324,7 @@ class Task extends TableBase {
       this.description,
       this.dueDate,
       this.isCompleted,
+      this.allDayTask,
       this.createdDate,
       this.updatedDate,
       this.personId,
@@ -1341,6 +1352,10 @@ class Task extends TableBase {
     if (o['isCompleted'] != null) {
       isCompleted = o['isCompleted'].toString() == '1' ||
           o['isCompleted'].toString() == 'true';
+    }
+    if (o['allDayTask'] != null) {
+      allDayTask = o['allDayTask'].toString() == '1' ||
+          o['allDayTask'].toString() == 'true';
     }
     if (o['createdDate'] != null) {
       createdDate = int.tryParse(o['createdDate'].toString()) != null
@@ -1372,6 +1387,7 @@ class Task extends TableBase {
   String? description;
   DateTime? dueDate;
   bool? isCompleted;
+  bool? allDayTask;
   DateTime? createdDate;
   DateTime? updatedDate;
   int? personId;
@@ -1425,6 +1441,11 @@ class Task extends TableBase {
       map['isCompleted'] = forQuery ? (isCompleted! ? 1 : 0) : isCompleted;
     } else if (isCompleted != null || !forView) {
       map['isCompleted'] = null;
+    }
+    if (allDayTask != null) {
+      map['allDayTask'] = forQuery ? (allDayTask! ? 1 : 0) : allDayTask;
+    } else if (allDayTask != null || !forView) {
+      map['allDayTask'] = null;
     }
     if (createdDate != null) {
       map['createdDate'] = forJson
@@ -1487,6 +1508,11 @@ class Task extends TableBase {
     } else if (isCompleted != null || !forView) {
       map['isCompleted'] = null;
     }
+    if (allDayTask != null) {
+      map['allDayTask'] = forQuery ? (allDayTask! ? 1 : 0) : allDayTask;
+    } else if (allDayTask != null || !forView) {
+      map['allDayTask'] = null;
+    }
     if (createdDate != null) {
       map['createdDate'] = forJson
           ? createdDate!.toString()
@@ -1540,6 +1566,7 @@ class Task extends TableBase {
       description,
       dueDate != null ? dueDate!.millisecondsSinceEpoch : null,
       isCompleted,
+      allDayTask,
       createdDate != null ? createdDate!.millisecondsSinceEpoch : null,
       updatedDate != null ? updatedDate!.millisecondsSinceEpoch : null,
       personId,
@@ -1555,6 +1582,7 @@ class Task extends TableBase {
       description,
       dueDate != null ? dueDate!.millisecondsSinceEpoch : null,
       isCompleted,
+      allDayTask,
       createdDate != null ? createdDate!.millisecondsSinceEpoch : null,
       updatedDate != null ? updatedDate!.millisecondsSinceEpoch : null,
       personId,
@@ -1730,13 +1758,14 @@ class Task extends TableBase {
   Future<int?> upsert({bool ignoreBatch = true}) async {
     try {
       final result = await _mnTask.rawInsert(
-          'INSERT OR REPLACE INTO tasks (id, title, description, dueDate, isCompleted, createdDate, updatedDate, personId,isDeleted)  VALUES (?,?,?,?,?,?,?,?,?)',
+          'INSERT OR REPLACE INTO tasks (id, title, description, dueDate, isCompleted, allDayTask, createdDate, updatedDate, personId,isDeleted)  VALUES (?,?,?,?,?,?,?,?,?,?)',
           [
             id,
             title,
             description,
             dueDate != null ? dueDate!.millisecondsSinceEpoch : null,
             isCompleted,
+            allDayTask,
             createdDate != null ? createdDate!.millisecondsSinceEpoch : null,
             updatedDate != null ? updatedDate!.millisecondsSinceEpoch : null,
             personId,
@@ -1766,7 +1795,7 @@ class Task extends TableBase {
   Future<BoolCommitResult> upsertAll(List<Task> tasks,
       {bool? exclusive, bool? noResult, bool? continueOnError}) async {
     final results = await _mnTask.rawInsertAll(
-        'INSERT OR REPLACE INTO tasks (id, title, description, dueDate, isCompleted, createdDate, updatedDate, personId,isDeleted)  VALUES (?,?,?,?,?,?,?,?,?)',
+        'INSERT OR REPLACE INTO tasks (id, title, description, dueDate, isCompleted, allDayTask, createdDate, updatedDate, personId,isDeleted)  VALUES (?,?,?,?,?,?,?,?,?,?)',
         tasks,
         exclusive: exclusive,
         noResult: noResult,
@@ -1820,6 +1849,7 @@ class Task extends TableBase {
 
   void _setDefaultValues() {
     isCompleted = isCompleted ?? false;
+    allDayTask = allDayTask ?? false;
     personId = personId ?? 1;
     isDeleted = isDeleted ?? false;
   }
@@ -2050,6 +2080,11 @@ class TaskFilterBuilder extends ConjunctionBase {
   TaskField? _isCompleted;
   TaskField get isCompleted {
     return _isCompleted = _setField(_isCompleted, 'isCompleted', DbType.bool);
+  }
+
+  TaskField? _allDayTask;
+  TaskField get allDayTask {
+    return _allDayTask = _setField(_allDayTask, 'allDayTask', DbType.bool);
   }
 
   TaskField? _createdDate;
@@ -2339,6 +2374,12 @@ class TaskFields {
   static TableField get isCompleted {
     return _fIsCompleted = _fIsCompleted ??
         SqlSyntax.setField(_fIsCompleted, 'isCompleted', DbType.bool);
+  }
+
+  static TableField? _fAllDayTask;
+  static TableField get allDayTask {
+    return _fAllDayTask = _fAllDayTask ??
+        SqlSyntax.setField(_fAllDayTask, 'allDayTask', DbType.bool);
   }
 
   static TableField? _fCreatedDate;
