@@ -64,9 +64,9 @@ class WelcomeScreen extends StatelessWidget {
       body: PageView(
         physics: const NeverScrollableScrollPhysics(),
         controller: c.pageController,
-        children: const [
+        children: [
           Dashboard(),
-          TaskMainList()
+          const TaskMainList()
         ],
       ),
       bottomNavigationBar: const CustomBottomNavigationBar()

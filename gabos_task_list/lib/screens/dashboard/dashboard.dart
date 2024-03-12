@@ -3,50 +3,29 @@ import 'package:gabos_task_list/controllers/dashboard_controller.dart';
 import 'package:gabos_task_list/controllers/global_values_controller.dart';
 import 'package:gabos_task_list/model/model.dart';
 import 'package:gabos_task_list/widgets/notes_container.dart';
-import 'package:gabos_task_list/widgets/task_list_view.dart';
+import 'package:gabos_task_list/widgets/task_panel_list.dart';
 import 'package:gabos_task_list/widgets/theme.dart';
 import 'package:get/get.dart';
 
 class Dashboard extends StatelessWidget {
-  const Dashboard({super.key});
+  Dashboard({super.key});
+
+  var todayPanelExpandedKey = "todayTasksExpanded";
+  var duePanelExpandedKey = "dueTasksExpanded";
+  var tomorrowPanelExpandedKey = "tomorrowTasksExpanded";
 
   Widget _displayTasks(Future<List<Task>> Function(int) getTasks, 
-    void Function() swapFunction, bool isExpanded, String title){
+    void Function() swapFunction, bool isExpanded, 
+    String title, {String? noDataTitle, Color? backgroundColor}){
     GlobalValuesController global = Get.find<GlobalValuesController>();
-    return NotesContainer(
-      child: ExpansionPanelList(
-
-        expansionCallback: (int index, bool isExpanded) {
-          swapFunction();
-        },
-        children: [
-          ExpansionPanel(
-            backgroundColor: notesColor,
-            headerBuilder: (BuildContext context, bool isExpanded) {
-                return ListTile(
-                  
-                  title: Text(title),
-                );
-              }, 
-            body: FutureBuilder(
-              future: getTasks(global.personId.value),
-              builder: (context, snapshot) {
-                if (!snapshot.hasData) {
-                  return const Center(
-                    child: CircularProgressIndicator()
-                  );
-                } else if (snapshot.data!.isEmpty) {
-                  return const Center(child: Text('No hay tareas'));
-                } else {
-                  List<Task> tasks = snapshot.data!;
-                  return TaskListView(tasks: tasks);
-                }
-              },
-            ),
-            isExpanded: isExpanded,
-          ),
-        ],
-      ),
+    return TaskPanelList(
+      getTasks: getTasks, 
+      swapFunction: swapFunction, 
+      isExpanded: isExpanded, 
+      title: title,
+      getTasksParameter: global.personId.value,
+      noDataTitle: noDataTitle ?? 'No hay tareas',
+      backgroundColor: backgroundColor
     );
   }
 
@@ -68,7 +47,7 @@ class Dashboard extends StatelessWidget {
               child: NotesContainer(
                 child: Center(
                   child: Text(
-                    'Bienvenido a Gabo\'s Task List',
+                    'Tu trabajo cercano',
                     style: TextStyle(
                       fontSize: 20,
                       color: strongBlue,
@@ -100,16 +79,19 @@ class Dashboard extends StatelessWidget {
                   controller.todayExpanded.value,
                   'Tareas de hoy'
                 ),
-                _displayTasks(controller.getTomorrowTasks, 
-                  controller.swapTomorrowExpanded, 
-                  controller.tomorrowExpanded.value,
-                  'Tareas de mañana'
-                ),
                 _displayTasks(controller.getDueTasks, 
                   controller.swapDueExpanded, 
                   controller.dueExpanded.value,
-                  'Tareas atrasadas'
-                )
+                  'Tareas atrasadas',
+                  noDataTitle: 'Felicidades no hay tareas atrasadas',
+                  backgroundColor: lightRed
+                ),
+                _displayTasks(controller.getTomorrowTasks, 
+                  controller.swapTomorrowExpanded, 
+                  controller.tomorrowExpanded.value,
+                  'Tareas de mañana',
+                  backgroundColor: lightGreen,
+                ),
               ],
                       ),
             ),

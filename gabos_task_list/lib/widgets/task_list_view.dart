@@ -7,14 +7,19 @@ class TaskListView extends StatelessWidget {
   const TaskListView({
     super.key,
     required this.tasks,
+    this.canScroll = true,
   });
 
   final List<Task> tasks;
+  final bool canScroll;
 
   @override
   Widget build(BuildContext context) {
     return Expanded(
       child: ListView.separated(
+        physics: canScroll ? 
+          const AlwaysScrollableScrollPhysics() : 
+          const NeverScrollableScrollPhysics(),
         itemBuilder: (context, index) {
           return TaskTile(
             task: tasks[index],

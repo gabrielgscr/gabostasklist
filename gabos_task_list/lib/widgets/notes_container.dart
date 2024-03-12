@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:gabos_task_list/widgets/theme.dart';
 
 class NotesContainer extends StatelessWidget {
-  const NotesContainer({super.key, required this.child});
+  const NotesContainer({super.key, required this.child, this.backgroundColor});
 
   final Widget child;
+  final Color? backgroundColor;
 
   @override
   Widget build(BuildContext context) {
@@ -15,7 +16,7 @@ class NotesContainer extends StatelessWidget {
         width: double.infinity,
         // Borde
         decoration: BoxDecoration(
-          color: notesColor,
+          color: backgroundColor ?? notesColor,
           borderRadius: BorderRadius.circular(10), // Borde redondeado
         ),
         child: child,

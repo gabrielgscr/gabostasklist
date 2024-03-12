@@ -42,3 +42,5 @@ var defaultBorderRadius = BorderRadius.circular(10.0);
 var activeTrackColor = Colors.white;
 var defaultPadding = const EdgeInsets.all(5.0);
 var notesColor = Colors.yellow[100];
+var lightRed = const Color(0xFFFFCCCC);
+var lightGreen = const Color(0xFFAAFFAA);
