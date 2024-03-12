@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:gabos_task_list/controllers/welcome_controller.dart';
+import 'package:gabos_task_list/screens/dashboard/dashboard.dart';
 import 'package:gabos_task_list/screens/tasks/new_task_form.dart';
 import 'package:gabos_task_list/screens/tasks/task_main_list.dart';
 import 'package:gabos_task_list/widgets/custom_app_bar.dart';
@@ -64,6 +65,7 @@ class WelcomeScreen extends StatelessWidget {
         physics: const NeverScrollableScrollPhysics(),
         controller: c.pageController,
         children: const [
+          Dashboard(),
           TaskMainList()
         ],
       ),
@@ -85,6 +87,7 @@ class CustomBottomNavigationBar extends StatelessWidget {
       selectedItemColor: strongBlue,
       onTap: (index) {
         c.currentPage.value = index;
+        c.setPage = index;
       },
       backgroundColor: bottomNavigationBarBackgroundColor,
       items: const <BottomNavigationBarItem>[

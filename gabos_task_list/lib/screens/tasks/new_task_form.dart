@@ -170,7 +170,7 @@ class NewTasKForm extends StatelessWidget {
           onChanged: (value) {
             Get.find<NewTaskController>().enabledHours.value = value;
           },
-          activeColor: Colors.white,
+          activeColor: activeTrackColor,
           activeTrackColor: strongBlue,
         )),
       ],
