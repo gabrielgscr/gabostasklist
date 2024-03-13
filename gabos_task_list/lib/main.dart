@@ -5,8 +5,14 @@ import 'package:gabos_task_list/controllers/global_values_controller.dart';
 import 'package:gabos_task_list/routes/routes.dart';
 import 'package:gabos_task_list/widgets/theme.dart';
 import 'package:get/get.dart';
+import 'package:timezone/data/latest.dart' as tz;
 
-void main() => runApp(const MyApp());
+void main() async {
+  WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
+  FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
+  tz.initializeTimeZones();
+  return runApp(const MyApp());
+} 
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -14,8 +20,6 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     Get.put(GlobalValuesController());
-    WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
-    FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
     return GetMaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Material App',

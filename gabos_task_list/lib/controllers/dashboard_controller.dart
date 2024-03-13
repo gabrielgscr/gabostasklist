@@ -4,8 +4,6 @@ import 'package:get/get.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 
-
-
 class DashboardController extends GetxController {
   List<Task> todayTasks = <Task>[].obs;
   List<Task> tomorrowTasks = <Task>[].obs;
@@ -27,7 +25,6 @@ class DashboardController extends GetxController {
   }
 
   Future<List<Task>> getTomorrowTasks(int personId) async {
-    tz.initializeTimeZones();
     final currentTimezone = getCurrentTimezone();
     var location = tz.getLocation(await currentTimezone);
     var now = tz.TZDateTime.now(location);

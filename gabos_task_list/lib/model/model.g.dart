@@ -85,6 +85,38 @@ class TableTask extends SqfEntityTableBase {
     return _instance = _instance ?? TableTask();
   }
 }
+
+// Reminder TABLE
+class TableReminder extends SqfEntityTableBase {
+  TableReminder() {
+    // declare properties of EntityTable
+    tableName = 'reminders';
+    primaryKeyName = 'id';
+    primaryKeyType = PrimaryKeyType.integer_auto_incremental;
+    useSoftDeleting = true;
+    // when useSoftDeleting is true, creates a field named 'isDeleted' on the table, and set to '1' this field when item deleted (does not hard delete)
+
+    // declare fields
+    fields = [
+      SqfEntityFieldBase('reminderDate', DbType.datetime,
+          minValue: DateTime.parse('1900-01-01')),
+      SqfEntityFieldBase('reminderType', DbType.integer),
+      SqfEntityFieldBase('createdDate', DbType.datetime,
+          minValue: DateTime.parse('1900-01-01')),
+      SqfEntityFieldBase('updatedDate', DbType.datetime,
+          minValue: DateTime.parse('1900-01-01')),
+      SqfEntityFieldRelationshipBase(TableTask.getInstance, DeleteRule.CASCADE,
+          relationType: RelationType.ONE_TO_MANY,
+          fieldName: 'taskId',
+          defaultValue: 1),
+    ];
+    super.init();
+  }
+  static SqfEntityTableBase? _instance;
+  static SqfEntityTableBase get getInstance {
+    return _instance = _instance ?? TableReminder();
+  }
+}
 // END TABLES
 
 // BEGIN SEQUENCES
@@ -118,6 +150,7 @@ class TaskModel extends SqfEntityModelProvider {
     databaseTables = [
       TablePerson.getInstance,
       TableTask.getInstance,
+      TableReminder.getInstance,
     ];
 
     sequences = [
@@ -1409,6 +1442,26 @@ class Task extends TableBase {
   }
   // END RELATIONSHIPS (Task)
 
+// COLLECTIONS & VIRTUALS (Task)
+  /// to load children of items to this field, use preload parameter. Ex: toList(preload:true) or toSingle(preload:true) or getById(preload:true)
+  /// You can also specify this object into certain preload fields!. Ex: toList(preload:true, preloadFields:['plReminders', 'plField2'..]) or so on..
+  List<Reminder>? plReminders;
+
+  /// get Reminder(s) filtered by id=taskId
+  ReminderFilterBuilder? getReminders(
+      {List<String>? columnsToSelect, bool? getIsDeleted}) {
+    if (id == null) {
+      return null;
+    }
+    return Reminder()
+        .select(columnsToSelect: columnsToSelect, getIsDeleted: getIsDeleted)
+        .taskId
+        .equals(id)
+        .and;
+  }
+
+// END COLLECTIONS & VIRTUALS (Task)
+
   static const bool _softDeleteActivated = true;
   TaskManager? __mnTask;
 
@@ -1544,6 +1597,12 @@ class Task extends TableBase {
       map['isDeleted'] = forQuery ? (isDeleted! ? 1 : 0) : isDeleted;
     }
 
+// COLLECTIONS (Task)
+    if (!forQuery) {
+      map['Reminders'] = await getReminders()!.toMapList();
+    }
+// END COLLECTIONS (Task)
+
     return map;
   }
 
@@ -1633,6 +1692,21 @@ class Task extends TableBase {
           setDefaultValues: setDefaultValues);
       // final List<String> _loadedFields = List<String>.from(loadedFields);
 
+      // RELATIONSHIPS PRELOAD CHILD
+      if (preload) {
+        loadedFields = loadedFields ?? [];
+        if (/*!_loadedfields!.contains('tasks.plReminders') && */ (preloadFields ==
+                null ||
+            preloadFields.contains('plReminders'))) {
+          /*_loadedfields!.add('tasks.plReminders'); */ obj.plReminders =
+              obj.plReminders ??
+                  await obj.getReminders()!.toList(
+                      preload: preload,
+                      preloadFields: preloadFields,
+                      loadParents: false /*, loadedFields:_loadedFields*/);
+        }
+      } // END RELATIONSHIPS PRELOAD CHILD
+
       // RELATIONSHIPS PRELOAD
       if (preload || loadParents) {
         loadedFields = loadedFields ?? [];
@@ -1670,6 +1744,21 @@ class Task extends TableBase {
     final data = await _mnTask.getById([id]);
     if (data.length != 0) {
       obj = Task.fromMap(data[0] as Map<String, dynamic>);
+
+      // RELATIONSHIPS PRELOAD CHILD
+      if (preload) {
+        loadedFields = loadedFields ?? [];
+        if (/*!_loadedfields!.contains('tasks.plReminders') && */ (preloadFields ==
+                null ||
+            preloadFields.contains('plReminders'))) {
+          /*_loadedfields!.add('tasks.plReminders'); */ obj.plReminders =
+              obj.plReminders ??
+                  await obj.getReminders()!.toList(
+                      preload: preload,
+                      preloadFields: preloadFields,
+                      loadParents: false /*, loadedFields:_loadedFields*/);
+        }
+      } // END RELATIONSHIPS PRELOAD CHILD
 
       // RELATIONSHIPS PRELOAD
       if (preload || loadParents) {
@@ -1809,6 +1898,14 @@ class Task extends TableBase {
   @override
   Future<BoolResult> delete([bool hardDelete = false]) async {
     debugPrint('SQFENTITIY: delete Task invoked (id=$id)');
+    var result = BoolResult(success: false);
+    {
+      result =
+          await Reminder().select().taskId.equals(id).and.delete(hardDelete);
+    }
+    if (!result.success) {
+      return result;
+    }
     if (!_softDeleteActivated || hardDelete || isDeleted!) {
       return _mnTask
           .delete(QueryParams(whereString: 'id=?', whereArguments: [id]));
@@ -1825,6 +1922,21 @@ class Task extends TableBase {
   @override
   Future<BoolResult> recover([bool recoverChilds = true]) async {
     debugPrint('SQFENTITIY: recover Task invoked (id=$id)');
+    var result = BoolResult(success: false);
+    if (recoverChilds) {
+      result = await Reminder()
+          .select(getIsDeleted: true)
+          .isDeleted
+          .equals(true)
+          .and
+          .taskId
+          .equals(id)
+          .and
+          .update({'isDeleted': 0});
+    }
+    if (!result.success && recoverChilds) {
+      return result;
+    }
     {
       return _mnTask.updateBatch(
           QueryParams(whereString: 'id=?', whereArguments: [id]),
@@ -2116,6 +2228,16 @@ class TaskFilterBuilder extends ConjunctionBase {
   Future<BoolResult> delete([bool hardDelete = false]) async {
     buildParameters();
     var r = BoolResult(success: false);
+    // Delete sub records where in (Reminder) according to DeleteRule.CASCADE
+    final idListReminderBYtaskId = toListPrimaryKeySQL(false);
+    final resReminderBYtaskId = await Reminder()
+        .select()
+        .where('taskId IN (${idListReminderBYtaskId['sql']})',
+            parameterValue: idListReminderBYtaskId['args'])
+        .delete(hardDelete);
+    if (!resReminderBYtaskId.success) {
+      return resReminderBYtaskId;
+    }
 
     if (_softDeleteActivated && !hardDelete) {
       r = await _mnTask!.updateBatch(qparams, {'isDeleted': 1});
@@ -2130,6 +2252,16 @@ class TaskFilterBuilder extends ConjunctionBase {
   Future<BoolResult> recover() async {
     buildParameters(getIsDeleted: true);
     debugPrint('SQFENTITIY: recover Task bulk invoked');
+    // Recover sub records where in (Reminder) according to DeleteRule.CASCADE
+    final idListReminderBYtaskId = toListPrimaryKeySQL(false);
+    final resReminderBYtaskId = await Reminder()
+        .select()
+        .where('taskId IN (${idListReminderBYtaskId['sql']})',
+            parameterValue: idListReminderBYtaskId['args'])
+        .update({'isDeleted': 0});
+    if (!resReminderBYtaskId.success) {
+      return resReminderBYtaskId;
+    }
     return _mnTask!.updateBatch(qparams, {'isDeleted': 0});
   }
 
@@ -2166,6 +2298,21 @@ class TaskFilterBuilder extends ConjunctionBase {
     Task? obj;
     if (data.isNotEmpty) {
       obj = Task.fromMap(data[0] as Map<String, dynamic>);
+
+      // RELATIONSHIPS PRELOAD CHILD
+      if (preload) {
+        loadedFields = loadedFields ?? [];
+        if (/*!_loadedfields!.contains('tasks.plReminders') && */ (preloadFields ==
+                null ||
+            preloadFields.contains('plReminders'))) {
+          /*_loadedfields!.add('tasks.plReminders'); */ obj.plReminders =
+              obj.plReminders ??
+                  await obj.getReminders()!.toList(
+                      preload: preload,
+                      preloadFields: preloadFields,
+                      loadParents: false /*, loadedFields:_loadedFields*/);
+        }
+      } // END RELATIONSHIPS PRELOAD CHILD
 
       // RELATIONSHIPS PRELOAD
       if (preload || loadParents) {
@@ -2421,6 +2568,1037 @@ class TaskManager extends SqfEntityProvider {
 }
 
 //endregion TaskManager
+// region Reminder
+class Reminder extends TableBase {
+  Reminder(
+      {this.id,
+      this.reminderDate,
+      this.reminderType,
+      this.createdDate,
+      this.updatedDate,
+      this.taskId,
+      this.isDeleted}) {
+    _setDefaultValues();
+    softDeleteActivated = true;
+  }
+  Reminder.withFields(this.reminderDate, this.reminderType, this.createdDate,
+      this.updatedDate, this.taskId, this.isDeleted) {
+    _setDefaultValues();
+  }
+  Reminder.withId(this.id, this.reminderDate, this.reminderType,
+      this.createdDate, this.updatedDate, this.taskId, this.isDeleted) {
+    _setDefaultValues();
+  }
+  // fromMap v2.0
+  Reminder.fromMap(Map<String, dynamic> o, {bool setDefaultValues = true}) {
+    if (setDefaultValues) {
+      _setDefaultValues();
+    }
+    id = int.tryParse(o['id'].toString());
+    if (o['reminderDate'] != null) {
+      reminderDate = int.tryParse(o['reminderDate'].toString()) != null
+          ? DateTime.fromMillisecondsSinceEpoch(
+              int.tryParse(o['reminderDate'].toString())!)
+          : DateTime.tryParse(o['reminderDate'].toString());
+    }
+    if (o['reminderType'] != null) {
+      reminderType = int.tryParse(o['reminderType'].toString());
+    }
+    if (o['createdDate'] != null) {
+      createdDate = int.tryParse(o['createdDate'].toString()) != null
+          ? DateTime.fromMillisecondsSinceEpoch(
+              int.tryParse(o['createdDate'].toString())!)
+          : DateTime.tryParse(o['createdDate'].toString());
+    }
+    if (o['updatedDate'] != null) {
+      updatedDate = int.tryParse(o['updatedDate'].toString()) != null
+          ? DateTime.fromMillisecondsSinceEpoch(
+              int.tryParse(o['updatedDate'].toString())!)
+          : DateTime.tryParse(o['updatedDate'].toString());
+    }
+    taskId = int.tryParse(o['taskId'].toString());
+
+    isDeleted = o['isDeleted'] != null
+        ? o['isDeleted'] == 1 || o['isDeleted'] == true
+        : null;
+
+    // RELATIONSHIPS FromMAP
+    plTask = o['task'] != null
+        ? Task.fromMap(o['task'] as Map<String, dynamic>)
+        : null;
+    // END RELATIONSHIPS FromMAP
+  }
+  // FIELDS (Reminder)
+  int? id;
+  DateTime? reminderDate;
+  int? reminderType;
+  DateTime? createdDate;
+  DateTime? updatedDate;
+  int? taskId;
+  bool? isDeleted;
+
+  // end FIELDS (Reminder)
+
+// RELATIONSHIPS (Reminder)
+  /// to load parent of items to this field, use preload parameter ex: toList(preload:true) or toSingle(preload:true) or getById(preload:true)
+  /// You can also specify this object into certain preload fields!. Ex: toList(preload:true, preloadFields:['plTask', 'plField2'..]) or so on..
+  Task? plTask;
+
+  /// get Task By TaskId
+  Future<Task?> getTask(
+      {bool loadParents = false, List<String>? loadedFields}) async {
+    final _obj = await Task()
+        .getById(taskId, loadParents: loadParents, loadedFields: loadedFields);
+    return _obj;
+  }
+  // END RELATIONSHIPS (Reminder)
+
+  static const bool _softDeleteActivated = true;
+  ReminderManager? __mnReminder;
+
+  ReminderManager get _mnReminder {
+    return __mnReminder = __mnReminder ?? ReminderManager();
+  }
+
+  // METHODS
+  @override
+  Map<String, dynamic> toMap(
+      {bool forQuery = false, bool forJson = false, bool forView = false}) {
+    final map = <String, dynamic>{};
+    map['id'] = id;
+    if (reminderDate != null) {
+      map['reminderDate'] = forJson
+          ? reminderDate!.toString()
+          : forQuery
+              ? reminderDate!.millisecondsSinceEpoch
+              : reminderDate;
+    } else if (reminderDate != null || !forView) {
+      map['reminderDate'] = null;
+    }
+    if (reminderType != null || !forView) {
+      map['reminderType'] = reminderType;
+    }
+    if (createdDate != null) {
+      map['createdDate'] = forJson
+          ? createdDate!.toString()
+          : forQuery
+              ? createdDate!.millisecondsSinceEpoch
+              : createdDate;
+    } else if (createdDate != null || !forView) {
+      map['createdDate'] = null;
+    }
+    if (updatedDate != null) {
+      map['updatedDate'] = forJson
+          ? updatedDate!.toString()
+          : forQuery
+              ? updatedDate!.millisecondsSinceEpoch
+              : updatedDate;
+    } else if (updatedDate != null || !forView) {
+      map['updatedDate'] = null;
+    }
+    if (taskId != null) {
+      map['taskId'] = forView
+          ? plTask == null
+              ? taskId
+              : plTask!.title
+          : taskId;
+    } else if (taskId != null || !forView) {
+      map['taskId'] = null;
+    }
+    if (isDeleted != null) {
+      map['isDeleted'] = forQuery ? (isDeleted! ? 1 : 0) : isDeleted;
+    }
+
+    return map;
+  }
+
+  @override
+  Future<Map<String, dynamic>> toMapWithChildren(
+      [bool forQuery = false,
+      bool forJson = false,
+      bool forView = false]) async {
+    final map = <String, dynamic>{};
+    map['id'] = id;
+    if (reminderDate != null) {
+      map['reminderDate'] = forJson
+          ? reminderDate!.toString()
+          : forQuery
+              ? reminderDate!.millisecondsSinceEpoch
+              : reminderDate;
+    } else if (reminderDate != null || !forView) {
+      map['reminderDate'] = null;
+    }
+    if (reminderType != null || !forView) {
+      map['reminderType'] = reminderType;
+    }
+    if (createdDate != null) {
+      map['createdDate'] = forJson
+          ? createdDate!.toString()
+          : forQuery
+              ? createdDate!.millisecondsSinceEpoch
+              : createdDate;
+    } else if (createdDate != null || !forView) {
+      map['createdDate'] = null;
+    }
+    if (updatedDate != null) {
+      map['updatedDate'] = forJson
+          ? updatedDate!.toString()
+          : forQuery
+              ? updatedDate!.millisecondsSinceEpoch
+              : updatedDate;
+    } else if (updatedDate != null || !forView) {
+      map['updatedDate'] = null;
+    }
+    if (taskId != null) {
+      map['taskId'] = forView
+          ? plTask == null
+              ? taskId
+              : plTask!.title
+          : taskId;
+    } else if (taskId != null || !forView) {
+      map['taskId'] = null;
+    }
+    if (isDeleted != null) {
+      map['isDeleted'] = forQuery ? (isDeleted! ? 1 : 0) : isDeleted;
+    }
+
+    return map;
+  }
+
+  /// This method returns Json String [Reminder]
+  @override
+  String toJson() {
+    return json.encode(toMap(forJson: true));
+  }
+
+  /// This method returns Json String [Reminder]
+  @override
+  Future<String> toJsonWithChilds() async {
+    return json.encode(await toMapWithChildren(false, true));
+  }
+
+  @override
+  List<dynamic> toArgs() {
+    return [
+      reminderDate != null ? reminderDate!.millisecondsSinceEpoch : null,
+      reminderType,
+      createdDate != null ? createdDate!.millisecondsSinceEpoch : null,
+      updatedDate != null ? updatedDate!.millisecondsSinceEpoch : null,
+      taskId,
+      isDeleted
+    ];
+  }
+
+  @override
+  List<dynamic> toArgsWithIds() {
+    return [
+      id,
+      reminderDate != null ? reminderDate!.millisecondsSinceEpoch : null,
+      reminderType,
+      createdDate != null ? createdDate!.millisecondsSinceEpoch : null,
+      updatedDate != null ? updatedDate!.millisecondsSinceEpoch : null,
+      taskId,
+      isDeleted
+    ];
+  }
+
+  static Future<List<Reminder>?> fromWebUrl(Uri uri,
+      {Map<String, String>? headers}) async {
+    try {
+      final response = await http.get(uri, headers: headers);
+      return await fromJson(response.body);
+    } catch (e) {
+      debugPrint(
+          'SQFENTITY ERROR Reminder.fromWebUrl: ErrorMessage: ${e.toString()}');
+      return null;
+    }
+  }
+
+  Future<http.Response> postUrl(Uri uri, {Map<String, String>? headers}) {
+    return http.post(uri, headers: headers, body: toJson());
+  }
+
+  static Future<List<Reminder>> fromJson(String jsonBody) async {
+    final Iterable list = await json.decode(jsonBody) as Iterable;
+    var objList = <Reminder>[];
+    try {
+      objList = list
+          .map((reminder) => Reminder.fromMap(reminder as Map<String, dynamic>))
+          .toList();
+    } catch (e) {
+      debugPrint(
+          'SQFENTITY ERROR Reminder.fromJson: ErrorMessage: ${e.toString()}');
+    }
+    return objList;
+  }
+
+  static Future<List<Reminder>> fromMapList(List<dynamic> data,
+      {bool preload = false,
+      List<String>? preloadFields,
+      bool loadParents = false,
+      List<String>? loadedFields,
+      bool setDefaultValues = true}) async {
+    final List<Reminder> objList = <Reminder>[];
+    loadedFields = loadedFields ?? [];
+    for (final map in data) {
+      final obj = Reminder.fromMap(map as Map<String, dynamic>,
+          setDefaultValues: setDefaultValues);
+      // final List<String> _loadedFields = List<String>.from(loadedFields);
+
+      // RELATIONSHIPS PRELOAD
+      if (preload || loadParents) {
+        loadedFields = loadedFields ?? [];
+        if ((preloadFields == null ||
+            loadParents ||
+            preloadFields.contains('plTask'))) {
+          obj.plTask =
+              obj.plTask ?? await obj.getTask(loadParents: loadParents);
+        }
+      } // END RELATIONSHIPS PRELOAD
+
+      objList.add(obj);
+    }
+    return objList;
+  }
+
+  /// returns Reminder by ID if exist, otherwise returns null
+  /// Primary Keys: int? id
+  /// bool preload: if true, loads all related child objects (Set preload to true if you want to load all fields related to child or parent)
+  /// ex: getById(preload:true) -> Loads all related objects
+  /// List<String> preloadFields: specify the fields you want to preload (preload parameter's value should also be "true")
+  /// ex: getById(preload:true, preloadFields:['plField1','plField2'... etc])  -> Loads only certain fields what you specified
+  /// bool loadParents: if true, loads all parent objects until the object has no parent
+
+  /// <returns>returns [Reminder] if exist, otherwise returns null
+  Future<Reminder?> getById(int? id,
+      {bool preload = false,
+      List<String>? preloadFields,
+      bool loadParents = false,
+      List<String>? loadedFields}) async {
+    if (id == null) {
+      return null;
+    }
+    Reminder? obj;
+    final data = await _mnReminder.getById([id]);
+    if (data.length != 0) {
+      obj = Reminder.fromMap(data[0] as Map<String, dynamic>);
+
+      // RELATIONSHIPS PRELOAD
+      if (preload || loadParents) {
+        loadedFields = loadedFields ?? [];
+        if ((preloadFields == null ||
+            loadParents ||
+            preloadFields.contains('plTask'))) {
+          obj.plTask =
+              obj.plTask ?? await obj.getTask(loadParents: loadParents);
+        }
+      } // END RELATIONSHIPS PRELOAD
+    } else {
+      obj = null;
+    }
+    return obj;
+  }
+
+  /// Saves the (Reminder) object. If the id field is null, saves as a new record and returns new id, if id is not null then updates record
+  /// ignoreBatch = true as a default. Set ignoreBatch to false if you run more than one save() operation those are between batchStart and batchCommit
+  /// <returns>Returns id
+  @override
+  Future<int?> save({bool ignoreBatch = true}) async {
+    if (id == null || id == 0) {
+      id = await _mnReminder.insert(this, ignoreBatch);
+    } else {
+      await _mnReminder.update(this);
+    }
+
+    return id;
+  }
+
+  /// Saves the (Reminder) object. If the id field is null, saves as a new record and returns new id, if id is not null then updates record
+  /// ignoreBatch = true as a default. Set ignoreBatch to false if you run more than one save() operation those are between batchStart and batchCommit
+  /// <returns>Returns id
+  @override
+  Future<int?> saveOrThrow({bool ignoreBatch = true}) async {
+    if (id == null || id == 0) {
+      id = await _mnReminder.insertOrThrow(this, ignoreBatch);
+
+      isInsert = true;
+    } else {
+      // id= await _upsert(); // removed in sqfentity_gen 1.3.0+6
+      await _mnReminder.updateOrThrow(this);
+    }
+
+    return id;
+  }
+
+  /// saveAs Reminder. Returns a new Primary Key value of Reminder
+
+  /// <returns>Returns a new Primary Key value of Reminder
+  @override
+  Future<int?> saveAs({bool ignoreBatch = true}) async {
+    id = null;
+
+    return save(ignoreBatch: ignoreBatch);
+  }
+
+  /// saveAll method saves the sent List<Reminder> as a bulk in one transaction
+  /// Returns a <List<BoolResult>>
+  static Future<List<dynamic>> saveAll(List<Reminder> reminders,
+      {bool? exclusive, bool? noResult, bool? continueOnError}) async {
+    List<dynamic>? result = [];
+    // If there is no open transaction, start one
+    final isStartedBatch = await TaskModel().batchStart();
+    for (final obj in reminders) {
+      await obj.save(ignoreBatch: false);
+    }
+    if (!isStartedBatch) {
+      result = await TaskModel().batchCommit(
+          exclusive: exclusive,
+          noResult: noResult,
+          continueOnError: continueOnError);
+      for (int i = 0; i < reminders.length; i++) {
+        if (reminders[i].id == null) {
+          reminders[i].id = result![i] as int;
+        }
+      }
+    }
+    return result!;
+  }
+
+  /// Updates if the record exists, otherwise adds a new row
+  /// <returns>Returns id
+  @override
+  Future<int?> upsert({bool ignoreBatch = true}) async {
+    try {
+      final result = await _mnReminder.rawInsert(
+          'INSERT OR REPLACE INTO reminders (id, reminderDate, reminderType, createdDate, updatedDate, taskId,isDeleted)  VALUES (?,?,?,?,?,?,?)',
+          [
+            id,
+            reminderDate != null ? reminderDate!.millisecondsSinceEpoch : null,
+            reminderType,
+            createdDate != null ? createdDate!.millisecondsSinceEpoch : null,
+            updatedDate != null ? updatedDate!.millisecondsSinceEpoch : null,
+            taskId,
+            isDeleted
+          ],
+          ignoreBatch);
+      if (result! > 0) {
+        saveResult = BoolResult(
+            success: true,
+            successMessage: 'Reminder id=$id updated successfully');
+      } else {
+        saveResult = BoolResult(
+            success: false, errorMessage: 'Reminder id=$id did not update');
+      }
+      return id;
+    } catch (e) {
+      saveResult = BoolResult(
+          success: false,
+          errorMessage: 'Reminder Save failed. Error: ${e.toString()}');
+      return null;
+    }
+  }
+
+  /// inserts or replaces the sent List<<Reminder>> as a bulk in one transaction.
+  /// upsertAll() method is faster then saveAll() method. upsertAll() should be used when you are sure that the primary key is greater than zero
+  /// Returns a BoolCommitResult
+  @override
+  Future<BoolCommitResult> upsertAll(List<Reminder> reminders,
+      {bool? exclusive, bool? noResult, bool? continueOnError}) async {
+    final results = await _mnReminder.rawInsertAll(
+        'INSERT OR REPLACE INTO reminders (id, reminderDate, reminderType, createdDate, updatedDate, taskId,isDeleted)  VALUES (?,?,?,?,?,?,?)',
+        reminders,
+        exclusive: exclusive,
+        noResult: noResult,
+        continueOnError: continueOnError);
+    return results;
+  }
+
+  /// Deletes Reminder
+
+  /// <returns>BoolResult res.success= true (Deleted), false (Could not be deleted)
+  @override
+  Future<BoolResult> delete([bool hardDelete = false]) async {
+    debugPrint('SQFENTITIY: delete Reminder invoked (id=$id)');
+    if (!_softDeleteActivated || hardDelete || isDeleted!) {
+      return _mnReminder
+          .delete(QueryParams(whereString: 'id=?', whereArguments: [id]));
+    } else {
+      return _mnReminder.updateBatch(
+          QueryParams(whereString: 'id=?', whereArguments: [id]),
+          {'isDeleted': 1});
+    }
+  }
+
+  /// Recover Reminder
+
+  /// <returns>BoolResult res.success=Recovered, not res.success=Can not recovered
+  @override
+  Future<BoolResult> recover([bool recoverChilds = true]) async {
+    debugPrint('SQFENTITIY: recover Reminder invoked (id=$id)');
+    {
+      return _mnReminder.updateBatch(
+          QueryParams(whereString: 'id=?', whereArguments: [id]),
+          {'isDeleted': 0});
+    }
+  }
+
+  @override
+  ReminderFilterBuilder select(
+      {List<String>? columnsToSelect, bool? getIsDeleted}) {
+    return ReminderFilterBuilder(this, getIsDeleted)
+      ..qparams.selectColumns = columnsToSelect;
+  }
+
+  @override
+  ReminderFilterBuilder distinct(
+      {List<String>? columnsToSelect, bool? getIsDeleted}) {
+    return ReminderFilterBuilder(this, getIsDeleted)
+      ..qparams.selectColumns = columnsToSelect
+      ..qparams.distinct = true;
+  }
+
+  void _setDefaultValues() {
+    taskId = taskId ?? 1;
+    isDeleted = isDeleted ?? false;
+  }
+
+  @override
+  void rollbackPk() {
+    if (isInsert == true) {
+      id = null;
+    }
+  }
+
+  // END METHODS
+  // BEGIN CUSTOM CODE
+  /*
+      you can define customCode property of your SqfEntityTable constant. For example:
+      const tablePerson = SqfEntityTable(
+      tableName: 'person',
+      primaryKeyName: 'id',
+      primaryKeyType: PrimaryKeyType.integer_auto_incremental,
+      fields: [
+        SqfEntityField('firstName', DbType.text),
+        SqfEntityField('lastName', DbType.text),
+      ],
+      customCode: '''
+       String fullName()
+       { 
+         return '$firstName $lastName';
+       }
+      ''');
+     */
+  // END CUSTOM CODE
+}
+// endregion reminder
+
+// region ReminderField
+class ReminderField extends FilterBase {
+  ReminderField(ReminderFilterBuilder reminderFB) : super(reminderFB);
+
+  @override
+  ReminderFilterBuilder equals(dynamic pValue) {
+    return super.equals(pValue) as ReminderFilterBuilder;
+  }
+
+  @override
+  ReminderFilterBuilder equalsOrNull(dynamic pValue) {
+    return super.equalsOrNull(pValue) as ReminderFilterBuilder;
+  }
+
+  @override
+  ReminderFilterBuilder isNull() {
+    return super.isNull() as ReminderFilterBuilder;
+  }
+
+  @override
+  ReminderFilterBuilder contains(dynamic pValue) {
+    return super.contains(pValue) as ReminderFilterBuilder;
+  }
+
+  @override
+  ReminderFilterBuilder startsWith(dynamic pValue) {
+    return super.startsWith(pValue) as ReminderFilterBuilder;
+  }
+
+  @override
+  ReminderFilterBuilder endsWith(dynamic pValue) {
+    return super.endsWith(pValue) as ReminderFilterBuilder;
+  }
+
+  @override
+  ReminderFilterBuilder between(dynamic pFirst, dynamic pLast) {
+    return super.between(pFirst, pLast) as ReminderFilterBuilder;
+  }
+
+  @override
+  ReminderFilterBuilder greaterThan(dynamic pValue) {
+    return super.greaterThan(pValue) as ReminderFilterBuilder;
+  }
+
+  @override
+  ReminderFilterBuilder lessThan(dynamic pValue) {
+    return super.lessThan(pValue) as ReminderFilterBuilder;
+  }
+
+  @override
+  ReminderFilterBuilder greaterThanOrEquals(dynamic pValue) {
+    return super.greaterThanOrEquals(pValue) as ReminderFilterBuilder;
+  }
+
+  @override
+  ReminderFilterBuilder lessThanOrEquals(dynamic pValue) {
+    return super.lessThanOrEquals(pValue) as ReminderFilterBuilder;
+  }
+
+  @override
+  ReminderFilterBuilder inValues(dynamic pValue) {
+    return super.inValues(pValue) as ReminderFilterBuilder;
+  }
+
+  @override
+  ReminderField get not {
+    return super.not as ReminderField;
+  }
+}
+// endregion ReminderField
+
+// region ReminderFilterBuilder
+class ReminderFilterBuilder extends ConjunctionBase {
+  ReminderFilterBuilder(Reminder obj, bool? getIsDeleted)
+      : super(obj, getIsDeleted) {
+    _mnReminder = obj._mnReminder;
+    _softDeleteActivated = obj.softDeleteActivated;
+  }
+
+  bool _softDeleteActivated = false;
+  ReminderManager? _mnReminder;
+
+  /// put the sql keyword 'AND'
+  @override
+  ReminderFilterBuilder get and {
+    super.and;
+    return this;
+  }
+
+  /// put the sql keyword 'OR'
+  @override
+  ReminderFilterBuilder get or {
+    super.or;
+    return this;
+  }
+
+  /// open parentheses
+  @override
+  ReminderFilterBuilder get startBlock {
+    super.startBlock;
+    return this;
+  }
+
+  /// String whereCriteria, write raw query without 'where' keyword. Like this: 'field1 like 'test%' and field2 = 3'
+  @override
+  ReminderFilterBuilder where(String? whereCriteria, {dynamic parameterValue}) {
+    super.where(whereCriteria, parameterValue: parameterValue);
+    return this;
+  }
+
+  /// page = page number,
+  /// pagesize = row(s) per page
+  @override
+  ReminderFilterBuilder page(int page, int pagesize) {
+    super.page(page, pagesize);
+    return this;
+  }
+
+  /// int count = LIMIT
+  @override
+  ReminderFilterBuilder top(int count) {
+    super.top(count);
+    return this;
+  }
+
+  /// close parentheses
+  @override
+  ReminderFilterBuilder get endBlock {
+    super.endBlock;
+    return this;
+  }
+
+  /// argFields might be String or List<String>.
+  /// Example 1: argFields='name, date'
+  /// Example 2: argFields = ['name', 'date']
+  @override
+  ReminderFilterBuilder orderBy(dynamic argFields) {
+    super.orderBy(argFields);
+    return this;
+  }
+
+  /// argFields might be String or List<String>.
+  /// Example 1: argFields='field1, field2'
+  /// Example 2: argFields = ['field1', 'field2']
+  @override
+  ReminderFilterBuilder orderByDesc(dynamic argFields) {
+    super.orderByDesc(argFields);
+    return this;
+  }
+
+  /// argFields might be String or List<String>.
+  /// Example 1: argFields='field1, field2'
+  /// Example 2: argFields = ['field1', 'field2']
+  @override
+  ReminderFilterBuilder groupBy(dynamic argFields) {
+    super.groupBy(argFields);
+    return this;
+  }
+
+  /// argFields might be String or List<String>.
+  /// Example 1: argFields='name, date'
+  /// Example 2: argFields = ['name', 'date']
+  @override
+  ReminderFilterBuilder having(dynamic argFields) {
+    super.having(argFields);
+    return this;
+  }
+
+  ReminderField _setField(ReminderField? field, String colName, DbType dbtype) {
+    return ReminderField(this)
+      ..param = DbParameter(
+          dbType: dbtype, columnName: colName, wStartBlock: openedBlock);
+  }
+
+  ReminderField? _id;
+  ReminderField get id {
+    return _id = _setField(_id, 'id', DbType.integer);
+  }
+
+  ReminderField? _reminderDate;
+  ReminderField get reminderDate {
+    return _reminderDate =
+        _setField(_reminderDate, 'reminderDate', DbType.datetime);
+  }
+
+  ReminderField? _reminderType;
+  ReminderField get reminderType {
+    return _reminderType =
+        _setField(_reminderType, 'reminderType', DbType.integer);
+  }
+
+  ReminderField? _createdDate;
+  ReminderField get createdDate {
+    return _createdDate =
+        _setField(_createdDate, 'createdDate', DbType.datetime);
+  }
+
+  ReminderField? _updatedDate;
+  ReminderField get updatedDate {
+    return _updatedDate =
+        _setField(_updatedDate, 'updatedDate', DbType.datetime);
+  }
+
+  ReminderField? _taskId;
+  ReminderField get taskId {
+    return _taskId = _setField(_taskId, 'taskId', DbType.integer);
+  }
+
+  ReminderField? _isDeleted;
+  ReminderField get isDeleted {
+    return _isDeleted = _setField(_isDeleted, 'isDeleted', DbType.bool);
+  }
+
+  /// Deletes List<Reminder> bulk by query
+  ///
+  /// <returns>BoolResult res.success= true (Deleted), false (Could not be deleted)
+  @override
+  Future<BoolResult> delete([bool hardDelete = false]) async {
+    buildParameters();
+    var r = BoolResult(success: false);
+
+    if (_softDeleteActivated && !hardDelete) {
+      r = await _mnReminder!.updateBatch(qparams, {'isDeleted': 1});
+    } else {
+      r = await _mnReminder!.delete(qparams);
+    }
+    return r;
+  }
+
+  /// Recover List<Reminder> bulk by query
+  @override
+  Future<BoolResult> recover() async {
+    buildParameters(getIsDeleted: true);
+    debugPrint('SQFENTITIY: recover Reminder bulk invoked');
+    return _mnReminder!.updateBatch(qparams, {'isDeleted': 0});
+  }
+
+  /// using:
+  /// update({'fieldName': Value})
+  /// fieldName must be String. Value is dynamic, it can be any of the (int, bool, String.. )
+  @override
+  Future<BoolResult> update(Map<String, dynamic> values) {
+    buildParameters();
+    if (qparams.limit! > 0 || qparams.offset! > 0) {
+      qparams.whereString =
+          'id IN (SELECT id from reminders ${qparams.whereString!.isNotEmpty ? 'WHERE ${qparams.whereString}' : ''}${qparams.limit! > 0 ? ' LIMIT ${qparams.limit}' : ''}${qparams.offset! > 0 ? ' OFFSET ${qparams.offset}' : ''})';
+    }
+    return _mnReminder!.updateBatch(qparams, values);
+  }
+
+  /// This method always returns [Reminder] Obj if exist, otherwise returns null
+  /// bool preload: if true, loads all related child objects (Set preload to true if you want to load all fields related to child or parent)
+  /// ex: toSingle(preload:true) -> Loads all related objects
+  /// List<String> preloadFields: specify the fields you want to preload (preload parameter's value should also be "true")
+  /// ex: toSingle(preload:true, preloadFields:['plField1','plField2'... etc])  -> Loads only certain fields what you specified
+  /// bool loadParents: if true, loads all parent objects until the object has no parent
+
+  /// <returns> Reminder?
+  @override
+  Future<Reminder?> toSingle(
+      {bool preload = false,
+      List<String>? preloadFields,
+      bool loadParents = false,
+      List<String>? loadedFields}) async {
+    buildParameters(pSize: 1);
+    final objFuture = _mnReminder!.toList(qparams);
+    final data = await objFuture;
+    Reminder? obj;
+    if (data.isNotEmpty) {
+      obj = Reminder.fromMap(data[0] as Map<String, dynamic>);
+
+      // RELATIONSHIPS PRELOAD
+      if (preload || loadParents) {
+        loadedFields = loadedFields ?? [];
+        if ((preloadFields == null ||
+            loadParents ||
+            preloadFields.contains('plTask'))) {
+          obj.plTask =
+              obj.plTask ?? await obj.getTask(loadParents: loadParents);
+        }
+      } // END RELATIONSHIPS PRELOAD
+    } else {
+      obj = null;
+    }
+    return obj;
+  }
+
+  /// This method always returns [Reminder]
+  /// bool preload: if true, loads all related child objects (Set preload to true if you want to load all fields related to child or parent)
+  /// ex: toSingle(preload:true) -> Loads all related objects
+  /// List<String> preloadFields: specify the fields you want to preload (preload parameter's value should also be "true")
+  /// ex: toSingle(preload:true, preloadFields:['plField1','plField2'... etc])  -> Loads only certain fields what you specified
+  /// bool loadParents: if true, loads all parent objects until the object has no parent
+
+  /// <returns> Reminder?
+  @override
+  Future<Reminder> toSingleOrDefault(
+      {bool preload = false,
+      List<String>? preloadFields,
+      bool loadParents = false,
+      List<String>? loadedFields}) async {
+    return await toSingle(
+            preload: preload,
+            preloadFields: preloadFields,
+            loadParents: loadParents,
+            loadedFields: loadedFields) ??
+        Reminder();
+  }
+
+  /// This method returns int. [Reminder]
+  /// <returns>int
+  @override
+  Future<int> toCount([VoidCallback Function(int c)? reminderCount]) async {
+    buildParameters();
+    qparams.selectColumns = ['COUNT(1) AS CNT'];
+    final remindersFuture = await _mnReminder!.toList(qparams);
+    final int count = remindersFuture[0]['CNT'] as int;
+    if (reminderCount != null) {
+      reminderCount(count);
+    }
+    return count;
+  }
+
+  /// This method returns List<Reminder> [Reminder]
+  /// bool preload: if true, loads all related child objects (Set preload to true if you want to load all fields related to child or parent)
+  /// ex: toList(preload:true) -> Loads all related objects
+  /// List<String> preloadFields: specify the fields you want to preload (preload parameter's value should also be "true")
+  /// ex: toList(preload:true, preloadFields:['plField1','plField2'... etc])  -> Loads only certain fields what you specified
+  /// bool loadParents: if true, loads all parent objects until the object has no parent
+
+  /// <returns>List<Reminder>
+  @override
+  Future<List<Reminder>> toList(
+      {bool preload = false,
+      List<String>? preloadFields,
+      bool loadParents = false,
+      List<String>? loadedFields}) async {
+    final data = await toMapList();
+    final List<Reminder> remindersData = await Reminder.fromMapList(data,
+        preload: preload,
+        preloadFields: preloadFields,
+        loadParents: loadParents,
+        loadedFields: loadedFields,
+        setDefaultValues: qparams.selectColumns == null);
+    return remindersData;
+  }
+
+  /// This method returns Json String [Reminder]
+  @override
+  Future<String> toJson() async {
+    final list = <dynamic>[];
+    final data = await toList();
+    for (var o in data) {
+      list.add(o.toMap(forJson: true));
+    }
+    return json.encode(list);
+  }
+
+  /// This method returns Json String. [Reminder]
+  @override
+  Future<String> toJsonWithChilds() async {
+    final list = <dynamic>[];
+    final data = await toList();
+    for (var o in data) {
+      list.add(await o.toMapWithChildren(false, true));
+    }
+    return json.encode(list);
+  }
+
+  /// This method returns List<dynamic>. [Reminder]
+  /// <returns>List<dynamic>
+  @override
+  Future<List<dynamic>> toMapList() async {
+    buildParameters();
+    return await _mnReminder!.toList(qparams);
+  }
+
+  /// This method returns Primary Key List SQL and Parameters retVal = Map<String,dynamic>. [Reminder]
+  /// retVal['sql'] = SQL statement string, retVal['args'] = whereArguments List<dynamic>;
+  /// <returns>List<String>
+  @override
+  Map<String, dynamic> toListPrimaryKeySQL([bool buildParams = true]) {
+    final Map<String, dynamic> _retVal = <String, dynamic>{};
+    if (buildParams) {
+      buildParameters();
+    }
+    _retVal['sql'] = 'SELECT `id` FROM reminders WHERE ${qparams.whereString}';
+    _retVal['args'] = qparams.whereArguments;
+    return _retVal;
+  }
+
+  /// This method returns Primary Key List<int>.
+  /// <returns>List<int>
+  @override
+  Future<List<int>> toListPrimaryKey([bool buildParams = true]) async {
+    if (buildParams) {
+      buildParameters();
+    }
+    final List<int> idData = <int>[];
+    qparams.selectColumns = ['id'];
+    final idFuture = await _mnReminder!.toList(qparams);
+
+    final int count = idFuture.length;
+    for (int i = 0; i < count; i++) {
+      idData.add(idFuture[i]['id'] as int);
+    }
+    return idData;
+  }
+
+  /// Returns List<dynamic> for selected columns. Use this method for 'groupBy' with min,max,avg..  [Reminder]
+  /// Sample usage: (see EXAMPLE 4.2 at https://github.com/hhtokpinar/sqfEntity#group-by)
+  @override
+  Future<List<dynamic>> toListObject() async {
+    buildParameters();
+
+    final objectFuture = _mnReminder!.toList(qparams);
+
+    final List<dynamic> objectsData = <dynamic>[];
+    final data = await objectFuture;
+    final int count = data.length;
+    for (int i = 0; i < count; i++) {
+      objectsData.add(data[i]);
+    }
+    return objectsData;
+  }
+
+  /// Returns List<String> for selected first column
+  /// Sample usage: await Reminder.select(columnsToSelect: ['columnName']).toListString()
+  @override
+  Future<List<String>> toListString(
+      [VoidCallback Function(List<String> o)? listString]) async {
+    buildParameters();
+
+    final objectFuture = _mnReminder!.toList(qparams);
+
+    final List<String> objectsData = <String>[];
+    final data = await objectFuture;
+    final int count = data.length;
+    for (int i = 0; i < count; i++) {
+      objectsData.add(data[i][qparams.selectColumns![0]].toString());
+    }
+    if (listString != null) {
+      listString(objectsData);
+    }
+    return objectsData;
+  }
+}
+// endregion ReminderFilterBuilder
+
+// region ReminderFields
+class ReminderFields {
+  static TableField? _fId;
+  static TableField get id {
+    return _fId = _fId ?? SqlSyntax.setField(_fId, 'id', DbType.integer);
+  }
+
+  static TableField? _fReminderDate;
+  static TableField get reminderDate {
+    return _fReminderDate = _fReminderDate ??
+        SqlSyntax.setField(_fReminderDate, 'reminderDate', DbType.datetime);
+  }
+
+  static TableField? _fReminderType;
+  static TableField get reminderType {
+    return _fReminderType = _fReminderType ??
+        SqlSyntax.setField(_fReminderType, 'reminderType', DbType.integer);
+  }
+
+  static TableField? _fCreatedDate;
+  static TableField get createdDate {
+    return _fCreatedDate = _fCreatedDate ??
+        SqlSyntax.setField(_fCreatedDate, 'createdDate', DbType.datetime);
+  }
+
+  static TableField? _fUpdatedDate;
+  static TableField get updatedDate {
+    return _fUpdatedDate = _fUpdatedDate ??
+        SqlSyntax.setField(_fUpdatedDate, 'updatedDate', DbType.datetime);
+  }
+
+  static TableField? _fTaskId;
+  static TableField get taskId {
+    return _fTaskId =
+        _fTaskId ?? SqlSyntax.setField(_fTaskId, 'taskId', DbType.integer);
+  }
+
+  static TableField? _fIsDeleted;
+  static TableField get isDeleted {
+    return _fIsDeleted = _fIsDeleted ??
+        SqlSyntax.setField(_fIsDeleted, 'isDeleted', DbType.integer);
+  }
+}
+// endregion ReminderFields
+
+//region ReminderManager
+class ReminderManager extends SqfEntityProvider {
+  ReminderManager()
+      : super(TaskModel(),
+            tableName: _tableName,
+            primaryKeyList: _primaryKeyList,
+            whereStr: _whereStr);
+  static const String _tableName = 'reminders';
+  static const List<String> _primaryKeyList = ['id'];
+  static const String _whereStr = 'id=?';
+}
+
+//endregion ReminderManager
 /// Region SEQUENCE IdentitySequence
 class IdentitySequence {
   /// Assigns a new value when it is triggered and returns the new value

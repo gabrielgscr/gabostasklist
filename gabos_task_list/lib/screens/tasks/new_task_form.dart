@@ -24,6 +24,49 @@ class NewTasKForm extends StatelessWidget {
 
   final TextEditingController _titleController = TextEditingController();
 
+  Widget obtenerDropdownRecordatorio() {
+    NewTaskController newTaskController = Get.find<NewTaskController>();
+    return DropdownButtonFormField(
+      value: newTaskController.reminderCode.value,
+      items: const [
+        DropdownMenuItem(
+          value: 0,
+          child: Text('Sin recordatorio'),
+        ),
+        DropdownMenuItem(
+          value: 1,
+          child: Text('15 minutos antes'),
+        ),
+        DropdownMenuItem(
+          value: 2,
+          child: Text('30 minutos antes'),
+        ),
+        DropdownMenuItem(
+          value: 3,
+          child: Text('1 hora antes'),
+        ),
+        DropdownMenuItem(
+          value: 4,
+          child: Text('1 día antes'),
+        ),
+        DropdownMenuItem(
+          value: 5,
+          child: Text('1 semana antes'),
+        ),
+      ],
+      onChanged: (value) {
+        newTaskController.reminderCode.value = value as int;
+      },
+      decoration: InputDecorations.defaultInputDecoration(
+        hintText: "Recordatorio", 
+        labelText: "Recordatorio", 
+        prefixIcon: Icons.alarm,
+        fillColor: Colors.grey[200],
+        filled: true,
+      ),
+    );
+  }
+
   GestureDetector _taskDueDate(BuildContext context) {
     return GestureDetector(
       onTap: () async {
@@ -150,7 +193,7 @@ class NewTasKForm extends StatelessWidget {
                   '${_dateController.text} ${newTaskController.enabledHours.value ? _timeController.text : "23:59:59"}',
                 );
                 GenericResponse response = await newTaskController.createNewTask(globalValuesController.personId.value);
-                if (response.responseCode == 1) {
+                if (response.responseCode == 0) {
                   Get.back();
                 }
                 showSnackbar(response.responseText);
@@ -204,8 +247,9 @@ class NewTasKForm extends StatelessWidget {
                   _taskDueDate(context),
                   defaultVSpace,
                   _taskDueTime(context),
-                  defaultVSpace,
                   _createEnabledHourSwitch(),
+                  defaultVSpace,
+                  obtenerDropdownRecordatorio(),
                 ],
               ),
             ),

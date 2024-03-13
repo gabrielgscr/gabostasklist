@@ -47,6 +47,25 @@ const tableTask = SqfEntityTable(
   ],
 );
 
+const tableReminder = SqfEntityTable(
+  tableName: 'reminders',
+  primaryKeyName: 'id',
+  primaryKeyType: PrimaryKeyType.integer_auto_incremental,
+  useSoftDeleting: true,
+  fields: [
+    SqfEntityField('reminderDate', DbType.datetime),
+    SqfEntityField('reminderType', DbType.integer),
+    SqfEntityField('createdDate', DbType.datetime),
+    SqfEntityField('updatedDate', DbType.datetime),
+    //relation with task table
+    SqfEntityFieldRelationship(
+        parentTable: tableTask,
+        deleteRule: DeleteRule.CASCADE,
+        defaultValue: 1,
+        fieldName: 'taskId'),
+  ],
+);
+
 // Define the 'identity' constant as SqfEntitySequence.
 const seqIdentity = SqfEntitySequence(
   sequenceName: 'identity',
@@ -64,7 +83,7 @@ const seqIdentity = SqfEntitySequence(
 const model = SqfEntityModel(
   modelName: 'TaskModel',
   databaseName: 'gabos_task_database.db',
-  databaseTables: [tablePerson, tableTask],
+  databaseTables: [tablePerson, tableTask, tableReminder],
   formTables: [tablePerson],
   sequences: [seqIdentity],
   dbVersion: 5,

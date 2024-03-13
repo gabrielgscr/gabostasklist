@@ -4,4 +4,6 @@ class GenericResponse {
   Object? responseObject;
 
   GenericResponse(this.responseCode, this.responseText, {this.responseObject});
+
+
 }

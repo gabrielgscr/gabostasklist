@@ -10,10 +10,6 @@ import 'package:get/get.dart';
 class Dashboard extends StatelessWidget {
   Dashboard({super.key});
 
-  var todayPanelExpandedKey = "todayTasksExpanded";
-  var duePanelExpandedKey = "dueTasksExpanded";
-  var tomorrowPanelExpandedKey = "tomorrowTasksExpanded";
-
   Widget _displayTasks(Future<List<Task>> Function(int) getTasks, 
     void Function() swapFunction, bool isExpanded, 
     String title, {String? noDataTitle, Color? backgroundColor}){
