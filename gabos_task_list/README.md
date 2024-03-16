@@ -43,3 +43,6 @@ Las imagenes se tomaron de Freepik
 
 #Se agregó paquete para notificaciones, se configuraron los archivos de gradle y manifest de android
   flutter_local_notifications: ^17.0.0
+
+## Comando para flutter launcher icons
+flutter pub run flutter_launcher_icons

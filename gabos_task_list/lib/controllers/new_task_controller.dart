@@ -3,6 +3,7 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:gabos_task_list/model/generic_response.dart';
 import 'package:gabos_task_list/model/model.dart';
 import 'package:gabos_task_list/tools/constants.dart';
+import 'package:gabos_task_list/tools/local_notifications_helper.dart';
 import 'package:get/get.dart';
 import 'package:timezone/timezone.dart' as tz;
 
@@ -28,7 +29,7 @@ class NewTaskController extends GetxController{
       if(reminderCode.value > 0){
         var response = await createNewReminder(newTask.id!);
         if(response.responseCode == 0){
-          await _scheduleReminder();
+          await _scheduleReminder(response.responseObject as Reminder);
         }
       }
       return GenericResponse(
@@ -61,19 +62,14 @@ class NewTaskController extends GetxController{
     }
   }
 
-  Future<void> _scheduleReminder() async {
-    // Paso 1: Inicializa el plugin.
-    FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
-    var initializationSettingsAndroid = const AndroidInitializationSettings('ic_launcher');
-    var initializationSettingsIOS = const DarwinInitializationSettings();
-    var initializationSettings = InitializationSettings(android: initializationSettingsAndroid, iOS: initializationSettingsIOS);
-    flutterLocalNotificationsPlugin.initialize(initializationSettings);
+  Future<void> _scheduleReminder(Reminder reminder) async {
 
+    FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
     // Paso 2: Configura los detalles de la notificación.
     var androidPlatformChannelSpecifics =  const AndroidNotificationDetails(
           remindersChannelId, 
           remindersChannelName, 
-          channelDescription: 'Notificaciones de recordatorios',
+          channelDescription: channelDescription,
           importance: Importance.max, 
           priority: Priority.high, 
           showWhen: false
@@ -85,9 +81,11 @@ class NewTaskController extends GetxController{
     //Calculo de la fecha de notificacion
     DateTime fecha = getReminder();
     tz.TZDateTime nowInLocal = tz.TZDateTime.from(fecha, tz.local);
+    nowInLocal = tz.TZDateTime.now(tz.local).add(const Duration(seconds: 30));
+  
     // Paso 3: Programa la notificación.
     await flutterLocalNotificationsPlugin.zonedSchedule(
-      0,
+      reminder.id!,
       title,
       body,
       nowInLocal, // Cambia esto por la fecha y hora en que quieres que se muestre la notificación
@@ -95,6 +93,12 @@ class NewTaskController extends GetxController{
       androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
       uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
     );
+    // LocalNotificationHelper.showLocalNotification(
+    //   id: reminder.id!,
+    //   title: title,
+    //   body: body,
+    //   data: reminder.id.toString()
+    // );
   }
 
   DateTime getReminder(){
