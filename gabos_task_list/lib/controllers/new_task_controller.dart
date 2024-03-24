@@ -61,8 +61,13 @@ class NewTaskController extends GetxController{
   }
 
   Future<void> _scheduleReminder(Reminder reminder) async {
-
-    
+    LocalNotificationHelper.scheduleLocalNotification(
+      id: reminder.id!,
+      dateTime: getReminder(),
+      title: title.value,
+      body: description.value,
+      data: reminder.id.toString()
+    );
   }
 
   DateTime getReminder(){

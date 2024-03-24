@@ -36,7 +36,7 @@ class RegisterScreen extends StatelessWidget {
 
   Widget _registerBtn() {
     return TextButton(
-        onPressed: () => Get.off(const LoginScreen()),
+        onPressed: () => Get.off(() => const LoginScreen()),
         style: ButtonStyle(
             overlayColor:
                 MaterialStateProperty.all(Colors.indigo.withOpacity(0.1)),
@@ -55,7 +55,7 @@ class RegisterScreen extends StatelessWidget {
         Row(
           children: [
             IconButton(
-                onPressed: () => Get.off(const LoginScreen()),
+                onPressed: () => Get.off(() => const LoginScreen()),
                 icon: const Icon(Icons.arrow_back_ios_new_rounded)),
             Text('Crear cuenta',
                 style: Theme.of(context).textTheme.headlineMedium),
@@ -108,7 +108,7 @@ class _RegisterForm extends StatelessWidget {
                 showSnackbar(response.responseText);
                 c.loading.value = false;
                 //showSnackbar("Usuario creado correctamente");
-                Get.off(const LoginScreen());
+                Get.off(() => const LoginScreen());
               },
         child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 80, vertical: 15),

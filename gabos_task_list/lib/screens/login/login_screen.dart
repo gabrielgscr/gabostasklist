@@ -22,7 +22,7 @@ class LoginScreen extends StatelessWidget {
 
   Widget _newAccount() {
     return TextButton(
-        onPressed: () => Get.off(const RegisterScreen()),
+        onPressed: () => Get.off(() => const RegisterScreen()),
         style: ButtonStyle(
             overlayColor:
                 MaterialStateProperty.all(Colors.indigo.withOpacity(0.1)),
@@ -117,7 +117,7 @@ class _LoginForm extends StatelessWidget {
                 //o la remueve en caso de que no se chequeara el recuerdame
                 removeUserInfo();
               }
-              Get.off(WelcomeScreen());
+              Get.off(() => WelcomeScreen());
             } else {
               showSnackbar(response.responseText);
             }

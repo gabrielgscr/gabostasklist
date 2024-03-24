@@ -28,7 +28,7 @@ class WelcomeScreen extends StatelessWidget {
           IconButton(
             onPressed: () {
               c.clear();
-              Get.off(const LoginScreen());
+              Get.off(() => const LoginScreen());
             },
             icon: const Icon(Icons.exit_to_app),
           ),
