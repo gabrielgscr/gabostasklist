@@ -8,9 +8,9 @@ class SharedPreferencesHelper {
     prefs.setString(key, value);
   }
 
-  static Future<String?> getString(String key) async {
+  static Future<String?> getString(String key, {String defaultValue = ''}) async {
     final prefs = await _prefs;
-    return prefs.getString(key);
+    return prefs.getString(key) ?? defaultValue;
   }
 
   static Future<void> setBool(String key, bool value) async {

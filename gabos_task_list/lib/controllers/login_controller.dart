@@ -1,6 +1,7 @@
 import 'package:gabos_task_list/model/generic_response.dart';
 import 'package:gabos_task_list/model/model.dart';
 import 'package:gabos_task_list/tools/password_encryption.dart';
+import 'package:gabos_task_list/tools/shared_preferences_helper.dart';
 import 'package:get/get.dart';
 
 class LoginController extends GetxController {
@@ -17,7 +18,7 @@ class LoginController extends GetxController {
       if (person == null) {
         return GenericResponse(-1, 'Usuario y/o contraseña incorrecta');
       } else {
-        String cyphPass = PasswordEncryption().encryptPassword(password.value);
+        String cyphPass = PasswordEncryption.encryptPassword(password.value);
         if (person.password == cyphPass) {
           return GenericResponse(1, 'Usuario autenticado', responseObject: person);
         } else {
@@ -26,4 +27,16 @@ class LoginController extends GetxController {
       }
     }
   }
+
+  Future<bool> rememberIsChecked() async {
+    bool? enabled = await SharedPreferencesHelper.getBool("remember");
+    remember.value = enabled!;
+    return enabled;
+  }
+
+  Future<void> setRemember(bool value) async {
+    remember.value = value;
+    await SharedPreferencesHelper.setBool("remember", value);
+  }
+
 }

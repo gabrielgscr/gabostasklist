@@ -24,7 +24,7 @@ Future<bool> containsData(String key) async {
 
 Future<void> storeUserInfo(UserInfo info) async {
   await storeValue("uname", info.name);
-  await storeValue("key", PasswordEncryption().encryptPassword(info.password));
+  await storeValue("key", PasswordEncryption.encryptPassword(info.password));
 }
 
 Future<void> removeUserInfo() async {
@@ -38,7 +38,7 @@ Future<UserInfo> getUserInfo() async {
   info.name = (await getValue("uname"))!;
   String password = (await getValue("key"))!;
   if (password.isNotEmpty) {
-    info.password = PasswordEncryption().decryptPassword(password);
+    info.password = PasswordEncryption.decryptPassword(password);
   } else {
     info.password = "";
   }

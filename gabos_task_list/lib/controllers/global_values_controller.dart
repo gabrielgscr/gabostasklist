@@ -12,5 +12,6 @@ class GlobalValuesController extends GetxController {
 
   void clear() {
     _username.value = '';
+    personId.value = 0;
   }
 }

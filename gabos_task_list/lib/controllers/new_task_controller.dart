@@ -1,5 +1,3 @@
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-
 import 'package:gabos_task_list/model/generic_response.dart';
 import 'package:gabos_task_list/model/model.dart';
 import 'package:gabos_task_list/tools/constants.dart';
@@ -64,41 +62,7 @@ class NewTaskController extends GetxController{
 
   Future<void> _scheduleReminder(Reminder reminder) async {
 
-    FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
-    // Paso 2: Configura los detalles de la notificación.
-    var androidPlatformChannelSpecifics =  const AndroidNotificationDetails(
-          remindersChannelId, 
-          remindersChannelName, 
-          channelDescription: channelDescription,
-          importance: Importance.max, 
-          priority: Priority.high, 
-          showWhen: false
-        );
-    var iOSPlatformChannelSpecifics = const DarwinNotificationDetails();
-    var platformChannelSpecifics = NotificationDetails(android: androidPlatformChannelSpecifics, iOS: iOSPlatformChannelSpecifics);
-    String title = 'Recordatorio';
-    String body = '$title - $description.value';
-    //Calculo de la fecha de notificacion
-    DateTime fecha = getReminder();
-    tz.TZDateTime nowInLocal = tz.TZDateTime.from(fecha, tz.local);
-    nowInLocal = tz.TZDateTime.now(tz.local).add(const Duration(seconds: 30));
-  
-    // Paso 3: Programa la notificación.
-    await flutterLocalNotificationsPlugin.zonedSchedule(
-      reminder.id!,
-      title,
-      body,
-      nowInLocal, // Cambia esto por la fecha y hora en que quieres que se muestre la notificación
-      platformChannelSpecifics,
-      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-      uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
-    );
-    // LocalNotificationHelper.showLocalNotification(
-    //   id: reminder.id!,
-    //   title: title,
-    //   body: body,
-    //   data: reminder.id.toString()
-    // );
+    
   }
 
   DateTime getReminder(){

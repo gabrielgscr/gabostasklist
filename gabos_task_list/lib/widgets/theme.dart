@@ -10,22 +10,23 @@ final ThemeData appTheme = ThemeData.light().copyWith(
   inputDecorationTheme: InputDecorationTheme(
     filled: true,
     fillColor: Colors.grey[200],
-    enabledBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(10.0),
-      borderSide: BorderSide(color: inactiveBorder, width: 2.0),
-    ),
-    focusedBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(10.0),
-      borderSide: BorderSide(color: strongBlue, width: 2.0),
-    ),
-    errorBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(10.0),
-      borderSide: BorderSide(color: errorBorder, width: 2.0),
-    ),
-    border: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(10.0),
-      borderSide: BorderSide(color: strongBlue, width: 2.0),
-    ),
+    // enabledBorder: OutlineInputBorder(
+    //   borderRadius: BorderRadius.circular(10.0),
+    //   borderSide: BorderSide(color: inactiveBorder, width: 2.0),
+    // ),
+    // focusedBorder: OutlineInputBorder(
+    //   borderRadius: BorderRadius.circular(10.0),
+    //   borderSide: BorderSide(color: strongBlue, width: 2.0),
+    // ),
+    // errorBorder: OutlineInputBorder(
+    //   borderRadius: BorderRadius.circular(10.0),
+    //   borderSide: BorderSide(color: errorBorder, width: 2.0),
+    // ),
+    // border: OutlineInputBorder(
+    //   borderRadius: BorderRadius.circular(10.0),
+    //   borderSide: BorderSide(color: strongBlue, width: 2.0),
+    // ),
+    border: InputBorder.none,
   )
 );
 

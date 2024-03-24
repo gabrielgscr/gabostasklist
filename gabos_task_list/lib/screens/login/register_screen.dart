@@ -4,6 +4,7 @@ import 'package:gabos_task_list/model/generic_response.dart';
 import 'package:gabos_task_list/screens/login/login_screen.dart';
 import 'package:gabos_task_list/tools/input_decorations.dart';
 import 'package:gabos_task_list/tools/tools.dart';
+import 'package:gabos_task_list/widgets/input_wrapper.dart';
 import 'package:gabos_task_list/widgets/theme.dart';
 import 'package:gabos_task_list/widgets/widgets.dart';
 import 'package:get/get.dart';
@@ -120,81 +121,89 @@ class _RegisterForm extends StatelessWidget {
 
   Widget _nameBox() {
     final RegisterController c = Get.find<RegisterController>();
-    return TextFormField(
-      autocorrect: false,
-      keyboardType: TextInputType.emailAddress,
-      decoration: InputDecorations.defaultInputDecoration(
-          hintText: 'Nombre',
-          labelText: 'Nombre',
-          prefixIcon: Icons.person_outline),
-      onChanged: (value) => c.name = value,
-      validator: (value) {
-        return (value != null && value.length >= 2)
-            ? null
-            : 'El valor ingresado no luce como un nombre';
-      },
+    return InputWrapper(
+      child: TextFormField(
+        autocorrect: false,
+        keyboardType: TextInputType.emailAddress,
+        decoration: InputDecorations.defaultInputDecoration(
+            hintText: 'Nombre',
+            labelText: 'Nombre',
+            prefixIcon: Icons.person_outline),
+        onChanged: (value) => c.name = value,
+        validator: (value) {
+          return (value != null && value.length >= 2)
+              ? null
+              : 'El valor ingresado no luce como un nombre';
+        },
+      ),
     );
   }
 
   Widget _lastNameBox() {
     final RegisterController c = Get.find<RegisterController>();
-    return TextFormField(
-      autocorrect: false,
-      keyboardType: TextInputType.emailAddress,
-      decoration: InputDecorations.defaultInputDecoration(
-          hintText: 'Apellido',
-          labelText: 'Apellido',
-          prefixIcon: Icons.person_outline),
-      onChanged: (value) => c.lastname = value,
-      validator: (value) {
-        return (value != null && value.length >= 2)
-            ? null
-            : 'El valor ingresado no luce como un apellido';
-      },
+    return InputWrapper(
+      child: TextFormField(
+        autocorrect: false,
+        keyboardType: TextInputType.emailAddress,
+        decoration: InputDecorations.defaultInputDecoration(
+            hintText: 'Apellido',
+            labelText: 'Apellido',
+            prefixIcon: Icons.person_outline),
+        onChanged: (value) => c.lastname = value,
+        validator: (value) {
+          return (value != null && value.length >= 2)
+              ? null
+              : 'El valor ingresado no luce como un apellido';
+        },
+      ),
     );
   }
 
   Widget passwordBox() {
     final RegisterController c = Get.find<RegisterController>();
-    return TextFormField(
-      autocorrect: false,
-      obscureText: true,
-      keyboardType: TextInputType.emailAddress,
-      decoration: InputDecorations.defaultInputDecoration(
-          hintText: '*****',
-          labelText: 'Contraseña',
-          prefixIcon: Icons.lock_outline),
-      onChanged: (value) {
-        c.password = value;
-        c.passwordConfirm = value;
-      },
-      validator: (value) {
-        return (value != null && value.length >= 6)
-            ? null
-            : 'La contraseña debe de ser de 6 caracteres';
-      },
+    return InputWrapper(
+      child: TextFormField(
+        autocorrect: false,
+        obscureText: true,
+        keyboardType: TextInputType.emailAddress,
+        decoration: InputDecorations.defaultInputDecoration(
+            hintText: '*****',
+            labelText: 'Contraseña',
+            prefixIcon: Icons.lock_outline),
+        onChanged: (value) {
+          c.password = value;
+          c.passwordConfirm = value;
+        },
+        validator: (value) {
+          return (value != null && value.length >= 6)
+              ? null
+              : 'La contraseña debe de ser de 6 caracteres';
+        },
+      ),
     );
   }
 
   Widget _emailBox() {
     final RegisterController c = Get.find<RegisterController>();
-    return TextFormField(
-      autocorrect: false,
-      keyboardType: TextInputType.emailAddress,
-      decoration: InputDecorations.defaultInputDecoration(
-          hintText: 'name@domain.com',
-          labelText: 'Correo electrónico',
-          prefixIcon: Icons.alternate_email_rounded),
-      onChanged: (value) => c.email = value,
-      validator: (value) {
-        String pattern =
-            r'^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$';
-        RegExp regExp = RegExp(pattern);
-
-        return regExp.hasMatch(value ?? '')
-            ? null
-            : 'El valor ingresado no luce como un correo';
-      },
+    return InputWrapper(
+      child: TextFormField(
+        autocorrect: false,
+        keyboardType: TextInputType.emailAddress,
+        decoration: InputDecorations.defaultInputDecoration(
+            hintText: 'name@domain.com',
+            labelText: 'Correo electrónico',
+            prefixIcon: Icons.alternate_email_rounded),
+        onChanged: (value) => c.email = value,
+        validator: (value) {
+          String pattern =
+              r'^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$';
+          RegExp regExp = RegExp(pattern);
+    
+          return regExp.hasMatch(value ?? '')
+              ? null
+              : 'El valor ingresado no luce como un correo';
+        },
+      ),
     );
   }
 }

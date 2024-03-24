@@ -3,14 +3,19 @@ import 'package:gabos_task_list/controllers/global_values_controller.dart';
 import 'package:gabos_task_list/controllers/login_controller.dart';
 import 'package:gabos_task_list/model/generic_response.dart';
 import 'package:gabos_task_list/model/model.dart';
+import 'package:gabos_task_list/model/user_info.dart';
 import 'package:gabos_task_list/screens/login/register_screen.dart';
 import 'package:gabos_task_list/screens/dashboard/welcome_screen.dart';
 import 'package:gabos_task_list/tools/input_decorations.dart';
 import 'package:gabos_task_list/tools/local_notifications_helper.dart';
+import 'package:gabos_task_list/tools/shared_preferences_helper.dart';
+import 'package:gabos_task_list/tools/store.dart';
 import 'package:gabos_task_list/tools/tools.dart';
+import 'package:gabos_task_list/widgets/input_wrapper.dart';
 import 'package:gabos_task_list/widgets/theme.dart';
 import 'package:gabos_task_list/widgets/widgets.dart';
 import 'package:get/get.dart';
+import 'package:gabos_task_list/tools/password_encryption.dart';
 
 class LoginScreen extends StatelessWidget {
   const LoginScreen({super.key});
@@ -57,11 +62,25 @@ class LoginScreen extends StatelessWidget {
             const SizedBox(height: 50),
             _newAccount(),
             const SizedBox(height: 50),
+            _settingsButton(),
+            
           ],
         ),
       ),
     )));
   }
+
+  //Este método muestra un botón icono de configuración
+  Widget _settingsButton() {
+    return IconButton(
+      onPressed: () {
+        // Navigate to the settings screen
+      },
+      icon: const Icon(Icons.settings, color: Colors.white),
+    );
+
+  }
+    
 }
 
 class _LoginForm extends StatelessWidget {
@@ -88,8 +107,17 @@ class _LoginForm extends StatelessWidget {
               //showSnackbar(response.responseText);
               g.username = c.username.value;
               g.personId.value = person!.personId!;
-
-              Get.off(const WelcomeScreen());
+              //Refresca la informacion de la persona
+              if(c.remember.value){
+                UserInfo info = UserInfo();
+                info.name = usernameController.text;
+                info.password = passwordController.text;
+                storeUserInfo(info);
+              } else {
+                //o la remueve en caso de que no se chequeara el recuerdame
+                removeUserInfo();
+              }
+              Get.off(WelcomeScreen());
             } else {
               showSnackbar(response.responseText);
             }
@@ -108,77 +136,113 @@ class _LoginForm extends StatelessWidget {
   }
 
   Widget _passwordField() {
-    return TextFormField(
-      controller: passwordController,
-      autocorrect: false,
-      obscureText: true,
-      keyboardType: TextInputType.emailAddress,
-      decoration: InputDecorations.defaultInputDecoration(
-          hintText: '*****',
-          labelText: 'Contraseña',
-          prefixIcon: Icons.lock_outline),
-      //onChanged: (value) => loginForm.password = value,
-      validator: (value) {
-        return (value != null && value.length >= 6)
-            ? null
-            : 'La contraseña debe de ser de 6 caracteres';
-      },
+    return Container(
+      decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(10.0), // Aquí
+          border: Border.all(color: strongBlue, width: 2.0)
+        ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 10),
+        child: TextFormField(
+          controller: passwordController,
+          autocorrect: false,
+          obscureText: true,
+          keyboardType: TextInputType.text,
+          decoration: InputDecorations.defaultInputDecoration(
+              hintText: '*****',
+              labelText: 'Contraseña',
+              prefixIcon: Icons.lock_outline),
+          //onChanged: (value) => loginForm.password = value,
+          validator: (value) {
+            return (value != null && value.length >= 6)
+                ? null
+                : 'La contraseña debe de ser de 6 caracteres';
+          },
+        ),
+      ),
     );
   }
 
   Widget _emailField() {
-    return TextFormField(
-      controller: usernameController,
-      autocorrect: false,
-      keyboardType: TextInputType.emailAddress,
-      decoration: InputDecorations.defaultInputDecoration(
-        hintText: 'name@domain.com',
-        labelText: 'Correo electrónico',
-        prefixIcon: Icons.alternate_email_rounded,
+    return InputWrapper(
+      child: TextFormField(
+        controller: usernameController,
+        autocorrect: false,
+        keyboardType: TextInputType.emailAddress,
+        decoration: InputDecorations.defaultInputDecoration(
+          hintText: 'name@domain.com',
+          labelText: 'Correo electrónico',
+          prefixIcon: Icons.alternate_email_rounded,
+        ),
+        //onChanged: (value) => loginForm.email = value,
+        validator: (value) {
+          String pattern =
+              r'^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$';
+          RegExp regExp = RegExp(pattern);
+        
+          return regExp.hasMatch(value ?? '')
+              ? null
+              : 'El valor ingresado no luce como un correo';
+        },
       ),
-      //onChanged: (value) => loginForm.email = value,
-      validator: (value) {
-        String pattern =
-            r'^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$';
-        RegExp regExp = RegExp(pattern);
-
-        return regExp.hasMatch(value ?? '')
-            ? null
-            : 'El valor ingresado no luce como un correo';
-      },
     );
   }
 
-  SwitchListTile _rememberMeCheck() {
+  Widget _rememberMeCheck() {
     final LoginController c = Get.find<LoginController>();
-    return SwitchListTile(
+    c.rememberIsChecked();
+    return Obx(() => SwitchListTile(
           title: const Text('Recuérdame'), 
           value: c.remember.value, 
           onChanged: (value) {
             c.remember.value = value;
+            c.setRemember(value);
+            if(value){
+              UserInfo info = UserInfo();
+              info.name = usernameController.text;
+              info.password = passwordController.text;
+              storeUserInfo(info);
+            } else {
+              removeUserInfo();
+            }
           },
           activeColor: Colors.white,
+        ));
+  }
+
+  Widget getFormFuture() {
+    return FutureBuilder(
+      future: getUserInfo(),
+      builder: (BuildContext context, AsyncSnapshot<UserInfo> snapshot) {
+        if (snapshot.hasData) {
+          UserInfo info = snapshot.data!;
+          usernameController.text = info.name;
+          passwordController.text = info.password;
+        } 
+        return Form(
+          key: _formKey,
+          autovalidateMode: AutovalidateMode.onUserInteraction,
+          child: Column(
+            children: [
+              _emailField(),
+              const SizedBox(height: 30),
+              _passwordField(),
+              const SizedBox(height: 30),
+              //Remember me
+              _rememberMeCheck(),
+              const SizedBox(height: 30),
+              _loginButton()
+            ],
+          ),
         );
+      },
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     LocalNotificationHelper.requestLocalNotificationPermission();
-    return Obx(() => Form(
-      key: _formKey,
-      autovalidateMode: AutovalidateMode.onUserInteraction,
-      child: Column(
-        children: [
-          _emailField(),
-          const SizedBox(height: 30),
-          _passwordField(),
-          const SizedBox(height: 30),
-          //Remember me
-          _rememberMeCheck(),
-          const SizedBox(height: 30),
-          _loginButton()
-        ],
-      ),
-    ));
+    return getFormFuture();
   }
 }

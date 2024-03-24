@@ -1,12 +1,12 @@
 import 'package:encrypt/encrypt.dart';
 
 class PasswordEncryption {
-  final String _encryptionKey = "tasklist+123vect";
-  final String _iv = "tasklist+123vect";
+  static const String _encryptionKey = "tasklist+123vect";
+  static const String _iv = "tasklist+123vect";
 
   PasswordEncryption();
 
-  String encryptPassword(String password) {
+  static String encryptPassword(String password) {
     final key = Key.fromUtf8(_encryptionKey);
     final iv = IV.fromUtf8(_iv);
     final encrypter = Encrypter(AES(key));
@@ -14,7 +14,7 @@ class PasswordEncryption {
     return encrypted.base64;
   }
 
-  String decryptPassword(String encryptedPassword) {
+  static String decryptPassword(String encryptedPassword) {
     final key = Key.fromUtf8(_encryptionKey);
     final iv = IV.fromUtf8(_iv);
     final encrypter = Encrypter(AES(key));

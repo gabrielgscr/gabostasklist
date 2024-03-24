@@ -42,7 +42,7 @@ class RegisterController extends GetxController {
         firstName: name,
         lastName: lastname,
         email: email,
-        password: PasswordEncryption().encryptPassword(password),
+        password: PasswordEncryption.encryptPassword(password),
         createdDate: DateTime.now(),
         updatedDate: DateTime.now());
     int? response = await person.save();

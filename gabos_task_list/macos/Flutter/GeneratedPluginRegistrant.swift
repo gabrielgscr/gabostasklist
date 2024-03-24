@@ -5,13 +5,13 @@
 import FlutterMacOS
 import Foundation
 
-import flutter_local_notifications
+import awesome_notifications
 import flutter_timezone
 import shared_preferences_foundation
 import sqflite_sqlcipher
 
 func RegisterGeneratedPlugins(registry: FlutterPluginRegistry) {
-  FlutterLocalNotificationsPlugin.register(with: registry.registrar(forPlugin: "FlutterLocalNotificationsPlugin"))
+  AwesomeNotificationsPlugin.register(with: registry.registrar(forPlugin: "AwesomeNotificationsPlugin"))
   FlutterTimezonePlugin.register(with: registry.registrar(forPlugin: "FlutterTimezonePlugin"))
   SharedPreferencesPlugin.register(with: registry.registrar(forPlugin: "SharedPreferencesPlugin"))
   SqfliteSqlCipherPlugin.register(with: registry.registrar(forPlugin: "SqfliteSqlCipherPlugin"))

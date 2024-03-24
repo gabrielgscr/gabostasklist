@@ -9,6 +9,7 @@ class InputDecorations {
       Color? fillColor = Colors.white, 
       }) {
     return InputDecoration(
+      isDense: true,
         filled: filled,
         fillColor: fillColor,
         hintText: hintText,

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:gabos_task_list/controllers/global_values_controller.dart';
 import 'package:gabos_task_list/controllers/welcome_controller.dart';
 import 'package:gabos_task_list/screens/dashboard/dashboard.dart';
+import 'package:gabos_task_list/screens/login/login_screen.dart';
 import 'package:gabos_task_list/screens/tasks/new_task_form.dart';
 import 'package:gabos_task_list/screens/tasks/task_main_list.dart';
 import 'package:gabos_task_list/widgets/custom_app_bar.dart';
@@ -9,8 +11,9 @@ import 'package:get/get.dart';
 
 class WelcomeScreen extends StatelessWidget {
   const WelcomeScreen({super.key});
-
+  
   CustomAppBar _appBar() {
+    GlobalValuesController c = Get.find<GlobalValuesController>();
     return CustomAppBar(
       title: "Gabo's Task List",
       actions: [
@@ -23,7 +26,10 @@ class WelcomeScreen extends StatelessWidget {
           ),
           // Add a logout button to the app bar
           IconButton(
-            onPressed: () {},
+            onPressed: () {
+              c.clear();
+              Get.off(const LoginScreen());
+            },
             icon: const Icon(Icons.exit_to_app),
           ),
           // Menu de opciones adicionales

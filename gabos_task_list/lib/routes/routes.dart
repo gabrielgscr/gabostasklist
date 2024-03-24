@@ -4,5 +4,5 @@ import 'package:gabos_task_list/screens/dashboard/welcome_screen.dart';
 
 Map<String, WidgetBuilder> routes = {
   'login': (_) => const LoginScreen(),
-  'welcome': (_) => const WelcomeScreen(),
+  'welcome': (_) => WelcomeScreen(),
 };
