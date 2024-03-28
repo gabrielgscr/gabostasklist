@@ -8,14 +8,12 @@ import 'package:gabos_task_list/screens/login/register_screen.dart';
 import 'package:gabos_task_list/screens/dashboard/welcome_screen.dart';
 import 'package:gabos_task_list/tools/input_decorations.dart';
 import 'package:gabos_task_list/tools/local_notifications_helper.dart';
-import 'package:gabos_task_list/tools/shared_preferences_helper.dart';
 import 'package:gabos_task_list/tools/store.dart';
 import 'package:gabos_task_list/tools/tools.dart';
 import 'package:gabos_task_list/widgets/input_wrapper.dart';
 import 'package:gabos_task_list/widgets/theme.dart';
 import 'package:gabos_task_list/widgets/widgets.dart';
 import 'package:get/get.dart';
-import 'package:gabos_task_list/tools/password_encryption.dart';
 
 class LoginScreen extends StatelessWidget {
   const LoginScreen({super.key});
@@ -117,7 +115,7 @@ class _LoginForm extends StatelessWidget {
                 //o la remueve en caso de que no se chequeara el recuerdame
                 removeUserInfo();
               }
-              Get.off(() => WelcomeScreen());
+              Get.off(() => const WelcomeScreen());
             } else {
               showSnackbar(response.responseText);
             }

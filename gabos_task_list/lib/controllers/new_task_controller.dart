@@ -1,9 +1,7 @@
 import 'package:gabos_task_list/model/generic_response.dart';
 import 'package:gabos_task_list/model/model.dart';
-import 'package:gabos_task_list/tools/constants.dart';
 import 'package:gabos_task_list/tools/local_notifications_helper.dart';
 import 'package:get/get.dart';
-import 'package:timezone/timezone.dart' as tz;
 
 class NewTaskController extends GetxController{
   var description = ''.obs;
@@ -27,7 +25,8 @@ class NewTaskController extends GetxController{
       if(reminderCode.value > 0){
         var response = await createNewReminder(newTask.id!);
         if(response.responseCode == 0){
-          await _scheduleReminder(response.responseObject as Reminder);
+          bool scheduleResult = await _scheduleReminder(response.responseObject as Reminder);
+          print("Se canlendarizó el recordatorio: $scheduleResult");
         }
       }
       return GenericResponse(
@@ -60,8 +59,8 @@ class NewTaskController extends GetxController{
     }
   }
 
-  Future<void> _scheduleReminder(Reminder reminder) async {
-    LocalNotificationHelper.scheduleLocalNotification(
+  Future<bool> _scheduleReminder(Reminder reminder) async {
+    return await LocalNotificationHelper.scheduleLocalNotification(
       id: reminder.id!,
       dateTime: getReminder(),
       title: title.value,

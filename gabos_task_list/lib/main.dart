@@ -3,9 +3,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:gabos_task_list/controllers/global_values_controller.dart';
-import 'package:gabos_task_list/routes/routes.dart';
+import 'package:gabos_task_list/model/generic_response.dart';
+import 'package:gabos_task_list/model/model.dart';
+import 'package:gabos_task_list/model/user_info.dart';
+import 'package:gabos_task_list/screens/dashboard/welcome_screen.dart';
 import 'package:gabos_task_list/screens/login/login_screen.dart';
 import 'package:gabos_task_list/tools/local_notifications_helper.dart';
+import 'package:gabos_task_list/tools/password_encryption.dart';
+import 'package:gabos_task_list/tools/shared_preferences_helper.dart';
+import 'package:gabos_task_list/tools/store.dart';
 import 'package:gabos_task_list/widgets/theme.dart';
 import 'package:get/get.dart';
 import 'package:timezone/data/latest.dart' as tz;
@@ -29,9 +35,12 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
 
+  bool _isRememberMeActive = false;
+  bool _areCredentialsValid = false;
+  Person? _person;
+
   @override
   void initState() {
-
     // Only after at least the action method is set, the notification events are delivered
     AwesomeNotifications().setListeners(
         onActionReceivedMethod:         NotificationController.onActionReceivedMethod,
@@ -39,20 +48,44 @@ class _MyAppState extends State<MyApp> {
         onNotificationDisplayedMethod:  NotificationController.onNotificationDisplayedMethod,
         onDismissActionReceivedMethod:  NotificationController.onDismissActionReceivedMethod
     );
-
+    _initPreferences();
     super.initState();
   }
+
+  Future<void> _initPreferences() async {
+    
+    _isRememberMeActive = await rememberIsChecked();
+    if(_isRememberMeActive){
+      UserInfo info = await getUserInfo();
+      GenericResponse response = await login(info.name, info.password);
+      if (response.responseCode == 1) {
+        _person = response.responseObject as Person;
+        _areCredentialsValid = true;
+      }
+    } else {
+      _areCredentialsValid = false;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    Get.put(GlobalValuesController());
+    GlobalValuesController c = Get.put(GlobalValuesController());
     return GetMaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Material App',
       initialRoute: '/',
       //routes: routes,
       onGenerateRoute: (settings) {
+        
         switch (settings.name) {
           case '/':
+            if(_isRememberMeActive && _areCredentialsValid){
+              c.personId.value = _person!.personId!;
+              c.username = _person!.email!;
+              return MaterialPageRoute(builder: (context) =>
+                const WelcomeScreen()
+            );
+            }
             return MaterialPageRoute(builder: (context) =>
                 const LoginScreen()
             );
@@ -81,6 +114,30 @@ class _MyAppState extends State<MyApp> {
       ],
       theme: appTheme,
     );
+  }
+
+  Future<bool> rememberIsChecked() async {
+    bool? enabled = await SharedPreferencesHelper.getBool("remember");
+    return enabled!;
+  }
+
+  Future<GenericResponse> login(String username, String password) async {
+    if (username.isEmpty || password.isEmpty) {
+      return GenericResponse(-1, 'Usuario y contraseña son requeridos');
+    } else {
+      Person? person =
+          await Person().select().email.equals(username).toSingle();
+      if (person == null) {
+        return GenericResponse(-1, 'Usuario y/o contraseña incorrecta');
+      } else {
+        String cyphPass = PasswordEncryption.encryptPassword(password);
+        if (person.password == cyphPass) {
+          return GenericResponse(1, 'Usuario autenticado', responseObject: person);
+        } else {
+          return GenericResponse(-1, 'Usuario y/o contraseña incorrecta');
+        }
+      }
+    }
   }
 }
 
