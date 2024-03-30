@@ -3,6 +3,7 @@ import 'package:gabos_task_list/controllers/global_values_controller.dart';
 import 'package:gabos_task_list/controllers/welcome_controller.dart';
 import 'package:gabos_task_list/screens/dashboard/dashboard.dart';
 import 'package:gabos_task_list/screens/login/login_screen.dart';
+import 'package:gabos_task_list/screens/profile/profile_screen.dart';
 import 'package:gabos_task_list/screens/tasks/new_task_form.dart';
 import 'package:gabos_task_list/screens/tasks/task_main_list.dart';
 import 'package:gabos_task_list/widgets/custom_app_bar.dart';
@@ -72,7 +73,8 @@ class WelcomeScreen extends StatelessWidget {
         controller: c.pageController,
         children: [
           Dashboard(),
-          const TaskMainList()
+          const TaskMainList(),
+          const ProfileScreen(),
         ],
       ),
       bottomNavigationBar: const CustomBottomNavigationBar()

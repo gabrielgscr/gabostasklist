@@ -1,7 +1,6 @@
 import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:gabos_task_list/model/model.dart';
 import 'package:get/get.dart';
-import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 
 class DashboardController extends GetxController {
@@ -13,7 +12,6 @@ class DashboardController extends GetxController {
   var dueExpanded = false.obs;
 
   Future<List<Task>> getTodayTasks(int personId) async {
-    tz.initializeTimeZones();
     final currentTimezone = getCurrentTimezone();
     var location = tz.getLocation(await currentTimezone);
     var now = tz.TZDateTime.now(location);
@@ -36,7 +34,6 @@ class DashboardController extends GetxController {
   }
 
   Future<List<Task>> getDueTasks(int personId) async {
-    tz.initializeTimeZones();
     final currentTimezone = getCurrentTimezone();
     var location = tz.getLocation(await currentTimezone);
     var now = tz.TZDateTime.now(location);
