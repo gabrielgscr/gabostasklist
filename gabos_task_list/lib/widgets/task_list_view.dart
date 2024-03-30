@@ -15,24 +15,22 @@ class TaskListView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Expanded(
-      child: ListView.separated(
-        physics: canScroll ? 
-          const AlwaysScrollableScrollPhysics() : 
-          const NeverScrollableScrollPhysics(),
-        itemBuilder: (context, index) {
-          return TaskTile(
-            task: tasks[index],
-          );
-        },
-        separatorBuilder: (context, index) => Divider(
-          thickness: 1.5,
-          color: defaultColor,
-        ),
-        itemCount: tasks.length,
-        shrinkWrap: true,
-        padding: const EdgeInsets.all(5),
+    return ListView.separated(
+      physics: canScroll ? 
+        const AlwaysScrollableScrollPhysics() : 
+        const NeverScrollableScrollPhysics(),
+      itemBuilder: (context, index) {
+        return TaskTile(
+          task: tasks[index],
+        );
+      },
+      separatorBuilder: (context, index) => Divider(
+        thickness: 1.5,
+        color: defaultColor,
       ),
+      itemCount: tasks.length,
+      shrinkWrap: true,
+      padding: const EdgeInsets.all(5),
     );
   }
 }

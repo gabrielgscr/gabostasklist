@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:gabos_task_list/widgets/theme.dart';
 
 class CustomAppBar extends StatelessWidget implements PreferredSizeWidget{
   final List<Widget>? actions;
@@ -30,6 +31,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget{
           title: Text(title),
           actions: actions,
           elevation: 20,
+          foregroundColor: defaultTextColor,
         ),
       ),
     );

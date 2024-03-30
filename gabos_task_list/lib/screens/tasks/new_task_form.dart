@@ -5,6 +5,7 @@ import 'package:gabos_task_list/model/generic_response.dart';
 import 'package:gabos_task_list/tools/input_decorations.dart';
 import 'package:gabos_task_list/tools/tools.dart';
 import 'package:gabos_task_list/widgets/custom_app_bar.dart';
+import 'package:gabos_task_list/widgets/input_wrapper.dart';
 import 'package:gabos_task_list/widgets/theme.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
@@ -26,43 +27,47 @@ class NewTasKForm extends StatelessWidget {
 
   Widget obtenerDropdownRecordatorio() {
     NewTaskController newTaskController = Get.find<NewTaskController>();
-    return DropdownButtonFormField(
-      value: newTaskController.reminderCode.value,
-      items: const [
-        DropdownMenuItem(
-          value: 0,
-          child: Text('Sin recordatorio'),
+    return InputWrapper(
+      fillColor: Colors.grey[200],
+      padding: 5,
+      child: DropdownButtonFormField(
+        value: newTaskController.reminderCode.value,
+        items: const [
+          DropdownMenuItem(
+            value: 0,
+            child: Text('Sin recordatorio'),
+          ),
+          DropdownMenuItem(
+            value: 1,
+            child: Text('15 minutos antes'),
+          ),
+          DropdownMenuItem(
+            value: 2,
+            child: Text('30 minutos antes'),
+          ),
+          DropdownMenuItem(
+            value: 3,
+            child: Text('1 hora antes'),
+          ),
+          DropdownMenuItem(
+            value: 4,
+            child: Text('1 día antes'),
+          ),
+          DropdownMenuItem(
+            value: 5,
+            child: Text('1 semana antes'),
+          ),
+        ],
+        onChanged: (value) {
+          newTaskController.reminderCode.value = value as int;
+        },
+        decoration: InputDecorations.defaultInputDecoration(
+          hintText: "Recordatorio", 
+          labelText: "Recordatorio", 
+          prefixIcon: Icons.alarm,
+          fillColor: Colors.grey[200],
+          filled: true,
         ),
-        DropdownMenuItem(
-          value: 1,
-          child: Text('15 minutos antes'),
-        ),
-        DropdownMenuItem(
-          value: 2,
-          child: Text('30 minutos antes'),
-        ),
-        DropdownMenuItem(
-          value: 3,
-          child: Text('1 hora antes'),
-        ),
-        DropdownMenuItem(
-          value: 4,
-          child: Text('1 día antes'),
-        ),
-        DropdownMenuItem(
-          value: 5,
-          child: Text('1 semana antes'),
-        ),
-      ],
-      onChanged: (value) {
-        newTaskController.reminderCode.value = value as int;
-      },
-      decoration: InputDecorations.defaultInputDecoration(
-        hintText: "Recordatorio", 
-        labelText: "Recordatorio", 
-        prefixIcon: Icons.alarm,
-        fillColor: Colors.grey[200],
-        filled: true,
       ),
     );
   }
@@ -83,16 +88,20 @@ class NewTasKForm extends StatelessWidget {
           }
         },
       child: AbsorbPointer(
-        child: TextFormField(
-          readOnly: true,
-          controller: _dateController,
-          decoration: InputDecorations.defaultInputDecoration(
-            labelText: 'Fecha de vencimiento',
-            hintText: 'Fecha de vencimiento',
-            //Color de fondo
-            fillColor: Colors.grey[200],
-            filled: true,
-            prefixIcon: Icons.calendar_today,
+        child: InputWrapper(
+          fillColor: Colors.grey[200],
+          padding: 5,
+          child: TextFormField(
+            readOnly: true,
+            controller: _dateController,
+            decoration: InputDecorations.defaultInputDecoration(
+              labelText: 'Fecha de vencimiento',
+              hintText: 'Fecha de vencimiento',
+              //Color de fondo
+              fillColor: Colors.grey[200],
+              filled: true,
+              prefixIcon: Icons.calendar_today,
+            ),
           ),
         ),
       ),
@@ -107,40 +116,48 @@ class NewTasKForm extends StatelessWidget {
     return pickedTime;
   }
 
-  TextFormField _taskDescription() {
-    return TextFormField(
-      controller: _descriptionController,
-      //Multiples lineas
-      maxLines: 5,
-      maxLength: 1000,
-      decoration: InputDecorations.defaultInputDecoration(
-        hintText: "Descripción de la tarea", labelText: "Descripción",
-        prefixIcon: Icons.description,
-        fillColor: Colors.grey[200],
-        filled: true,
-        ),
-        validator: (value) {
-          return null;
-        },
+  Widget _taskDescription() {
+    return InputWrapper(
+      fillColor: Colors.grey[200],
+      padding: 5,
+      child: TextFormField(
+        controller: _descriptionController,
+        //Multiples lineas
+        maxLines: 5,
+        maxLength: 1000,
+        decoration: InputDecorations.defaultInputDecoration(
+          hintText: "Descripción de la tarea", labelText: "Descripción",
+          prefixIcon: Icons.description,
+          fillColor: Colors.grey[200],
+          filled: true,
+          ),
+          validator: (value) {
+            return null;
+          },
+      ),
     );
   }
 
-  TextFormField _taskName() {
-    return TextFormField(
-      controller: _titleController,
-      validator: (value) {
-        return (value != null && value.length >= 3) 
-        ? null 
-        : 'El titulo debe de ser de 3 caracteres al menos';
-      
-      },
-      maxLength: 100,
-      decoration: InputDecorations.defaultInputDecoration(
-        hintText: "Titulo de la tarea", 
-        labelText: "Titulo", 
-        prefixIcon: Icons.task,
-        fillColor: Colors.grey[200],
-        filled: true,
+  Widget _taskName() {
+    return InputWrapper(
+      fillColor: Colors.grey[200],
+      padding: 5,
+      child: TextFormField(
+        controller: _titleController,
+        validator: (value) {
+          return (value != null && value.length >= 3) 
+          ? null 
+          : 'El titulo debe de ser de 3 caracteres al menos';
+        
+        },
+        maxLength: 100,
+        decoration: InputDecorations.defaultInputDecoration(
+          hintText: "Titulo de la tarea", 
+          labelText: "Titulo", 
+          prefixIcon: Icons.task,
+          fillColor: Colors.grey[200],
+          filled: true,
+        ),
       ),
     );
   }
@@ -165,17 +182,21 @@ class NewTasKForm extends StatelessWidget {
         }
       },
       child: AbsorbPointer(
-        child: TextFormField(
-          readOnly: true,
-          enabled: newTaskController.enabledHours.value,
-          controller: _timeController,
-          decoration: InputDecorations.defaultInputDecoration(
-            labelText: 'Hora de vencimiento',
-            hintText: 'Hora de vencimiento',
-            //Color de fondo
-            fillColor: Colors.grey[200],
-            filled: true,
-            prefixIcon: Icons.access_time,
+        child: InputWrapper(
+          fillColor: Colors.grey[200],
+          padding: 5,
+          child: TextFormField(
+            readOnly: true,
+            enabled: newTaskController.enabledHours.value,
+            controller: _timeController,
+            decoration: InputDecorations.defaultInputDecoration(
+              labelText: 'Hora de vencimiento',
+              hintText: 'Hora de vencimiento',
+              //Color de fondo
+              fillColor: Colors.grey[200],
+              filled: true,
+              prefixIcon: Icons.access_time,
+            ),
           ),
         ),
       ),

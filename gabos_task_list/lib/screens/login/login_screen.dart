@@ -7,7 +7,6 @@ import 'package:gabos_task_list/model/user_info.dart';
 import 'package:gabos_task_list/screens/login/register_screen.dart';
 import 'package:gabos_task_list/screens/dashboard/welcome_screen.dart';
 import 'package:gabos_task_list/tools/input_decorations.dart';
-import 'package:gabos_task_list/tools/local_notifications_helper.dart';
 import 'package:gabos_task_list/tools/store.dart';
 import 'package:gabos_task_list/tools/tools.dart';
 import 'package:gabos_task_list/widgets/input_wrapper.dart';
@@ -240,7 +239,6 @@ class _LoginForm extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    LocalNotificationHelper.requestLocalNotificationPermission();
     return getFormFuture();
   }
 }

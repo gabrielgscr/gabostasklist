@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:gabos_task_list/controllers/global_values_controller.dart';
 import 'package:gabos_task_list/controllers/task_controller.dart';
 import 'package:gabos_task_list/model/model.dart';
+import 'package:gabos_task_list/widgets/input_wrapper.dart';
 import 'package:gabos_task_list/widgets/task_list_view.dart';
 import 'package:gabos_task_list/widgets/theme.dart';
 import 'package:get/get.dart';
@@ -50,13 +51,17 @@ class FilteredTaskList extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.start,
         children: [
           Expanded(
-            child: TextField(
-                controller: _filterController,
-                decoration: const InputDecoration(
-                  labelText: 'Filtrar tareas',
-                  prefixIcon: Icon(Icons.search),
+            child: InputWrapper(
+              fillColor: Colors.grey[200],
+              padding: 5,
+              child: TextField(
+                  controller: _filterController,
+                  decoration: const InputDecoration(
+                    labelText: 'Filtrar tareas',
+                    prefixIcon: Icon(Icons.search),
+                  ),
                 ),
-              ),
+            ),
           ),
             //Boton para filtrar
             IconButton(

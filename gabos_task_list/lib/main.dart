@@ -25,18 +25,17 @@ void main() async {
 } 
 
 class MyApp extends StatefulWidget {
-  static final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
-
   const MyApp({super.key});
+
+  static final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
   @override
   State<MyApp> createState() => _MyAppState();
 }
 
 class _MyAppState extends State<MyApp> {
-
-  bool _isRememberMeActive = false;
   bool _areCredentialsValid = false;
+  bool _isRememberMeActive = false;
   Person? _person;
 
   @override
@@ -48,72 +47,7 @@ class _MyAppState extends State<MyApp> {
         onNotificationDisplayedMethod:  NotificationController.onNotificationDisplayedMethod,
         onDismissActionReceivedMethod:  NotificationController.onDismissActionReceivedMethod
     );
-    _initPreferences();
     super.initState();
-  }
-
-  Future<void> _initPreferences() async {
-    
-    _isRememberMeActive = await rememberIsChecked();
-    if(_isRememberMeActive){
-      UserInfo info = await getUserInfo();
-      GenericResponse response = await login(info.name, info.password);
-      if (response.responseCode == 1) {
-        _person = response.responseObject as Person;
-        _areCredentialsValid = true;
-      }
-    } else {
-      _areCredentialsValid = false;
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    GlobalValuesController c = Get.put(GlobalValuesController());
-    return GetMaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'Material App',
-      initialRoute: '/',
-      //routes: routes,
-      onGenerateRoute: (settings) {
-        
-        switch (settings.name) {
-          case '/':
-            if(_isRememberMeActive && _areCredentialsValid){
-              c.personId.value = _person!.personId!;
-              c.username = _person!.email!;
-              return MaterialPageRoute(builder: (context) =>
-                const WelcomeScreen()
-            );
-            }
-            return MaterialPageRoute(builder: (context) =>
-                const LoginScreen()
-            );
-
-          case '/notification-page':
-            return MaterialPageRoute(builder: (context) {
-              final ReceivedAction receivedAction = settings
-                  .arguments as ReceivedAction;
-              //return MyNotificationPage(receivedAction: receivedAction);
-              return const LoginScreen();
-            });
-
-          default:
-            assert(false, 'Page ${settings.name} not found');
-            return null;
-        }
-      },
-      localizationsDelegates: const [
-        GlobalMaterialLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-        GlobalCupertinoLocalizations.delegate,
-      ],
-      supportedLocales: const [
-        Locale('es', ''), // Español
-        Locale('en', ''), // Inglés
-      ],
-      theme: appTheme,
-    );
   }
 
   Future<bool> rememberIsChecked() async {
@@ -139,11 +73,88 @@ class _MyAppState extends State<MyApp> {
       }
     }
   }
+
+  Future<void> _initPreferences() async {
+    
+    _isRememberMeActive = await rememberIsChecked();
+    if(_isRememberMeActive){
+      UserInfo info = await getUserInfo();
+      GenericResponse response = await login(info.name, info.password);
+      if (response.responseCode == 1) {
+        _person = response.responseObject as Person;
+        _areCredentialsValid = true;
+      }
+    } else {
+      _areCredentialsValid = false;
+    }
+  }
+
+  GetMaterialApp _buildMaterialApp(GlobalValuesController c) {
+    return GetMaterialApp(
+    debugShowCheckedModeBanner: false,
+    title: 'Material App',
+    initialRoute: '/',
+    //routes: routes,
+    onGenerateRoute: (settings) {
+      LocalNotificationHelper.requestLocalNotificationPermission();
+      FlutterNativeSplash.remove();
+      switch (settings.name) {
+        case '/':
+          if(_isRememberMeActive && _areCredentialsValid){
+            c.personId.value = _person!.personId!;
+            c.username = _person!.email!;
+            return MaterialPageRoute(builder: (context) =>
+              const WelcomeScreen()
+          );
+          }
+          return MaterialPageRoute(builder: (context) =>
+              const LoginScreen()
+          );
+
+        case '/notification-page':
+          return MaterialPageRoute(builder: (context) {
+            final ReceivedAction receivedAction = settings
+                .arguments as ReceivedAction;
+            //return MyNotificationPage(receivedAction: receivedAction);
+            return const LoginScreen();
+          });
+
+        default:
+          assert(false, 'Page ${settings.name} not found');
+          return null;
+      }
+    },
+    localizationsDelegates: const [
+      GlobalMaterialLocalizations.delegate,
+      GlobalWidgetsLocalizations.delegate,
+      GlobalCupertinoLocalizations.delegate,
+    ],
+    supportedLocales: const [
+      Locale('es', ''), // Español
+      Locale('en', ''), // Inglés
+    ],
+    theme: appTheme,
+  );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    GlobalValuesController c = Get.put(GlobalValuesController());
+    return FutureBuilder(
+      future: _initPreferences(),
+      builder: (context, snapshot) {
+        if(snapshot.connectionState == ConnectionState.done){
+          return _buildMaterialApp(c);
+        } else {
+          return const MaterialApp(home: Scaffold(body: Center(child: CircularProgressIndicator())));
+        }
+      }
+    );
+  }
 }
 
 
 class NotificationController {
-
   /// Use this method to detect when a new notification or a schedule is created
   @pragma("vm:entry-point")
   static Future <void> onNotificationCreatedMethod(ReceivedNotification receivedNotification) async {

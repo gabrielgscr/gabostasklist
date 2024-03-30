@@ -17,6 +17,9 @@ class InputDecorations {
         labelStyle: const TextStyle(color: Colors.grey),
         prefixIcon: prefixIcon != null
             ? Icon(prefixIcon, color: strongBlue)
-            : null);
+            : null,
+        //border: InputBorder.none,
+        );
+        
   }
 }

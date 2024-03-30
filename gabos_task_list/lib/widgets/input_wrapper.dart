@@ -4,18 +4,20 @@ import 'package:gabos_task_list/widgets/theme.dart';
 
 class InputWrapper extends StatelessWidget {
   final Widget? child;
-  const InputWrapper({super.key, this.child});
+  final Color? fillColor;
+  final double padding;
+  const InputWrapper({super.key, this.child, this.fillColor, this.padding = 10.0});
 
   @override
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-          color: Colors.white,
+          color: fillColor ?? Colors.white,
           borderRadius: BorderRadius.circular(10.0), // Aquí
           border: Border.all(color: strongBlue, width: 2.0)
         ),
       child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 10),
+        padding: EdgeInsets.symmetric(vertical: padding),
         child: child,
       ),
     );
