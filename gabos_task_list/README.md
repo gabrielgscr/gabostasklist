@@ -46,3 +46,5 @@ Las imagenes se tomaron de Freepik
 
 ## Comando para flutter launcher icons
 flutter pub run flutter_launcher_icons
+
+Version de Flutter 3.19.5
