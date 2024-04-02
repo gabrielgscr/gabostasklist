@@ -8,9 +8,10 @@ import 'package:get/get.dart';
 
 // Esta clase implementa un ListTile personalizado para mostrar una tarea.
 class TaskTile extends StatelessWidget {
-  const TaskTile({super.key, required this.task});
+  const TaskTile({super.key, required this.task, this.color = Colors.transparent});
 
   final Task task;
+  final Color color;
 
   @override
   Widget build(BuildContext context) {
@@ -23,6 +24,7 @@ class TaskTile extends StatelessWidget {
           width: 1.0,
         ),
         borderRadius: defaultBorderRadius,
+        color: color,
       ),
       child: Column(
         children: [

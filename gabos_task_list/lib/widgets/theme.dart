@@ -29,7 +29,7 @@ final ThemeData appTheme = ThemeData.light().copyWith(
     border: InputBorder.none,
   )
 );
-
+const defaultPaddingSize = 5.0;
 var strongBlue = const Color(0xFF0D47A1);
 var bottomNavigationBarBackgroundColor = Colors.blueGrey[50];
 var inactiveBorder = Colors.blueGrey;
@@ -41,7 +41,8 @@ var defaultTextColor = Colors.white;
 var defaultVSpace = const SizedBox(height: 10.0,);
 var defaultBorderRadius = BorderRadius.circular(10.0);
 var activeTrackColor = Colors.white;
-var defaultPadding = const EdgeInsets.all(5.0);
+var defaultPadding = const EdgeInsets.all(defaultPaddingSize);
 var notesColor = Colors.yellow[100];
 var lightRed = const Color(0xFFFFCCCC);
 var lightGreen = const Color(0xFFAAFFAA);
+var backgroundAccentColor = Colors.grey[200];

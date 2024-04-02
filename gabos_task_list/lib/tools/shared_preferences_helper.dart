@@ -1,3 +1,4 @@
+import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class SharedPreferencesHelper {
@@ -20,7 +21,14 @@ class SharedPreferencesHelper {
 
   static Future<bool?> getBool(String key) async {
     final prefs = await _prefs;
-    return prefs.getBool(key);
+    if(prefs.containsKey(key))
+    {
+      final prefs = await _prefs;
+      return prefs.getBool(key);
+    }
+    else {
+      return false;
+    }
   }
 
   // Puedes agregar más métodos para otros tipos de datos (int, double, List<String>, etc.)

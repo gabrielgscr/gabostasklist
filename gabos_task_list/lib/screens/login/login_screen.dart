@@ -42,6 +42,17 @@ class LoginScreen extends StatelessWidget {
     ));
   }
 
+  //Este método muestra un botón icono de configuración
+  Widget _settingsButton() {
+    return IconButton(
+      onPressed: () {
+        // Navigate to the settings screen
+      },
+      icon: const Icon(Icons.settings, color: Colors.white),
+    );
+
+  }
+
   @override
   Widget build(BuildContext context) {
     Get.put(LoginController());
@@ -66,18 +77,6 @@ class LoginScreen extends StatelessWidget {
       ),
     )));
   }
-
-  //Este método muestra un botón icono de configuración
-  Widget _settingsButton() {
-    return IconButton(
-      onPressed: () {
-        // Navigate to the settings screen
-      },
-      icon: const Icon(Icons.settings, color: Colors.white),
-    );
-
-  }
-    
 }
 
 class _LoginForm extends StatelessWidget {
@@ -85,6 +84,36 @@ class _LoginForm extends StatelessWidget {
   final usernameController = TextEditingController();
 
   final _formKey = GlobalKey<FormState>();
+
+  Widget getFormFuture() {
+    final LoginController c = Get.find<LoginController>();
+    return FutureBuilder(
+      future: getUserInfo(),
+      builder: (BuildContext context, AsyncSnapshot<UserInfo> snapshot) {
+        if (snapshot.hasData && c.remember.value) {
+          UserInfo info = snapshot.data!;
+          usernameController.text = info.name;
+          passwordController.text = info.password;
+        } 
+        return Form(
+          key: _formKey,
+          autovalidateMode: AutovalidateMode.onUserInteraction,
+          child: Column(
+            children: [
+              _emailField(),
+              const SizedBox(height: 30),
+              _passwordField(),
+              const SizedBox(height: 30),
+              //Remember me
+              _rememberMeCheck(),
+              const SizedBox(height: 30),
+              _loginButton()
+            ],
+          ),
+        );
+      },
+    );
+  }
 
   Widget _loginButton() {
     final LoginController c = Get.find<LoginController>();
@@ -206,35 +235,6 @@ class _LoginForm extends StatelessWidget {
           },
           activeColor: Colors.white,
         ));
-  }
-
-  Widget getFormFuture() {
-    return FutureBuilder(
-      future: getUserInfo(),
-      builder: (BuildContext context, AsyncSnapshot<UserInfo> snapshot) {
-        if (snapshot.hasData) {
-          UserInfo info = snapshot.data!;
-          usernameController.text = info.name;
-          passwordController.text = info.password;
-        } 
-        return Form(
-          key: _formKey,
-          autovalidateMode: AutovalidateMode.onUserInteraction,
-          child: Column(
-            children: [
-              _emailField(),
-              const SizedBox(height: 30),
-              _passwordField(),
-              const SizedBox(height: 30),
-              //Remember me
-              _rememberMeCheck(),
-              const SizedBox(height: 30),
-              _loginButton()
-            ],
-          ),
-        );
-      },
-    );
   }
 
   @override

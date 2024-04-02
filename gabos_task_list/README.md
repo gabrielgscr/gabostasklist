@@ -48,3 +48,6 @@ Las imagenes se tomaron de Freepik
 flutter pub run flutter_launcher_icons
 
 Version de Flutter 3.19.5
+
+Generar release de produccion:
+flutter build apk --split-per-abi

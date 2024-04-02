@@ -8,10 +8,12 @@ class TaskListView extends StatelessWidget {
     super.key,
     required this.tasks,
     this.canScroll = true,
+    this.tasksColor =  Colors.transparent
   });
 
   final List<Task> tasks;
   final bool canScroll;
+  final Color tasksColor;
 
   @override
   Widget build(BuildContext context) {
@@ -22,6 +24,7 @@ class TaskListView extends StatelessWidget {
       itemBuilder: (context, index) {
         return TaskTile(
           task: tasks[index],
+          color: tasksColor,
         );
       },
       separatorBuilder: (context, index) => Divider(

@@ -1,4 +1,6 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:gabos_task_list/controllers/global_values_controller.dart';
 import 'package:gabos_task_list/controllers/task_controller.dart';
 import 'package:gabos_task_list/model/model.dart';
@@ -13,21 +15,29 @@ class TaskMainList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: double.infinity,
-      height: double.infinity,
-      child: FilteredTaskList(),
-    );
+    return Container(
+    width: double.infinity,
+    height: double.infinity,
+    decoration: const BoxDecoration(
+      image: DecorationImage(
+        image: AssetImage('assets/desktop.jpg'), // Cambia esto a la ruta de tu imagen.
+        fit: BoxFit.cover,
+      ),
+    ),
+    child: FilteredTaskList(),
+  );
   }
 }
 
 class FilteredTaskList extends StatelessWidget {
   FilteredTaskList({super.key});
   final _filterController = TextEditingController();
+  
   Widget _createTaskList() {
     var tasks = Get.put(TaskController());
     var global = Get.find<GlobalValuesController>();
-    return FutureBuilder(
+    return SingleChildScrollView(
+      child: FutureBuilder(
       future: tasks.getTasks(global.personId.value),
       builder: (context, snapshot) {
         if (!snapshot.hasData) {
@@ -36,23 +46,25 @@ class FilteredTaskList extends StatelessWidget {
           return const Center(child: Text('Ingresa más tareas'));
          } else {
           List<Task> tasks = snapshot.data!;
-          return TaskListView(tasks: tasks);
+          return TaskListView(tasks: tasks, tasksColor: notesColor!, canScroll: false,);
         }
       },
+            ),
     );
   }
 
   Widget _createFilter() {
     var tasks = Get.put(TaskController());
     var global = Get.find<GlobalValuesController>();
-    return Padding(
+    return Container(
       padding: defaultPadding,
+      color: backgroundAccentColor,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.start,
         children: [
           Expanded(
             child: InputWrapper(
-              fillColor: Colors.grey[200],
+              fillColor: backgroundAccentColor,
               padding: 5,
               child: TextField(
                   controller: _filterController,
@@ -90,8 +102,9 @@ class FilteredTaskList extends StatelessWidget {
   }
 
   Widget _createShowCompleted() {
-    return Padding(
+    return Container(
       padding: defaultPadding,
+      color: backgroundAccentColor,
       child: Row(
         children: [
           const Text('Mostrar completadas'),
@@ -115,7 +128,8 @@ class FilteredTaskList extends StatelessWidget {
       children: [
         _createFilter(),
         _createShowCompleted(),
-        _createTaskList(),
+        defaultVSpace,
+        Expanded(child: SingleChildScrollView(child: _createTaskList())),
       ],
     ));
   }

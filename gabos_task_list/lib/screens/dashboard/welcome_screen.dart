@@ -16,7 +16,7 @@ class WelcomeScreen extends StatelessWidget {
   CustomAppBar _appBar() {
     GlobalValuesController c = Get.find<GlobalValuesController>();
     return CustomAppBar(
-      title: "Gabo's Task List",
+      title: "Tareas épicas",
       actions: [
           // Add a task button to the app bar
           IconButton(
@@ -34,38 +34,59 @@ class WelcomeScreen extends StatelessWidget {
             icon: const Icon(Icons.exit_to_app),
           ),
           // Menu de opciones adicionales
-          PopupMenuButton(
-            itemBuilder: (context) => [
-              const PopupMenuItem(
-                value: 'settings',
-                child: ListTile(
-                  leading: Icon(Icons.settings),
-                  title: Text('Opciones'),
-                ),
-              ),
-              const PopupMenuItem(
-                value: 'about',
-                child: ListTile(
-                  leading: Icon(Icons.info),
-                  title: Text('Acerca de'),
-                ),
-              ),
-            ],
-            onSelected: (value) {
-              if (value == 'settings') {
-                // Navigate to the settings screen
-              } else if (value == 'about') {
-                // Navigate to the about screen
-              }
-            },
-          ),
+          _menuButton(),
         ],
     );
+  }
+
+  PopupMenuButton<String> _menuButton() {
+    return PopupMenuButton(
+          itemBuilder: (context) => [
+            // const PopupMenuItem(
+            //   value: 'settings',
+            //   child: ListTile(
+            //     leading: Icon(Icons.settings),
+            //     title: Text('Opciones'),
+            //   ),
+            // ),
+            PopupMenuItem(
+              onTap: () => showAboutDialog(
+                context: context,
+                applicationName: 'Tareas épicas',
+                applicationVersion: '1.0.0',
+                applicationIcon: const Image(
+                  image: AssetImage('assets/pulpo.png'),
+                  width: 50,
+                  height: 50,
+                ),
+                children: [
+                  const Text('Desarrollado por TicoDevs'),
+                  const Text('Versión 1.0.0'),
+                ],
+              ),
+              value: 'about',
+              child: const ListTile(
+                leading: Icon(Icons.info),
+                title: Text('Acerca de'),
+              ),
+            ),
+          ],
+          onSelected: (value) {
+            if (value == 'settings') {
+              // Navigate to the settings screen
+            } else if (value == 'about') {
+              // Navigate to the about screen
+            }
+          },
+        );
   }
 
   @override
   Widget build(BuildContext context) {
     WelcomeController c = Get.put(WelcomeController());
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      c.setPage = c.currentPage.value;
+    });
     return Scaffold(
       appBar: _appBar(),
       body: PageView(

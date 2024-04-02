@@ -2,6 +2,7 @@ flutter_native_splash:
   color: "#ffffff"
   image: assets/splash_ticodevs.png
   android_12:
+    color: "#ffffff"
     image: assets/splash_ticodevs.png
     icon_background_color: "#ffffff"
     image_dark: assets/splash_ticodevs.png

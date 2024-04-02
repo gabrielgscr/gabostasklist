@@ -17,7 +17,7 @@ class DashboardController extends GetxController {
     var now = tz.TZDateTime.now(location);
     var offset = now.timeZoneOffset.inHours;
     //var offset = -6;
-    todayTasks = await Task().select().where("personId = ? AND date(datetime(dueDate / 1000, 'unixepoch', '${offset > 0 ? '+' : ''}$offset hours'))  = date(CURRENT_DATE)", 
+    todayTasks = await Task().select().where("personId = ? AND date(datetime(dueDate / 1000, 'unixepoch', '${offset > 0 ? '+' : ''}$offset hours'))  = date(date(CURRENT_DATE, '${offset > 0 ? '+' : ''}$offset hours'))", 
     parameterValue: [personId]).toList();
     return todayTasks;
   }
@@ -28,7 +28,7 @@ class DashboardController extends GetxController {
     var now = tz.TZDateTime.now(location);
     var offset = now.timeZoneOffset.inHours;
     //var offset = -6;
-    tomorrowTasks = await Task().select().where("personId = ? AND date(datetime(dueDate / 1000, 'unixepoch', '${offset > 0 ? '+' : ''}$offset hours'))  = date(CURRENT_DATE, '+1 day')", 
+    tomorrowTasks = await Task().select().where("personId = ? AND date(datetime(dueDate / 1000, 'unixepoch', '${offset > 0 ? '+' : ''}$offset hours'))  = date(date(CURRENT_DATE, '${offset > 0 ? '+' : ''}$offset hours'), '+1 day')", 
     parameterValue: [personId]).toList();
     return tomorrowTasks;
   }
@@ -39,7 +39,7 @@ class DashboardController extends GetxController {
     var now = tz.TZDateTime.now(location);
     var offset = now.timeZoneOffset.inHours;
     //var offset = -6;
-    dueTasks = await Task().select().where("personId = ? AND isCompleted = 0 AND date(datetime(dueDate / 1000, 'unixepoch', '${offset > 0 ? '+' : ''}$offset hours'))  < date(CURRENT_DATE)", 
+    dueTasks = await Task().select().where("personId = ? AND isCompleted = 0 AND datetime(dueDate / 1000, 'unixepoch', '${offset > 0 ? '+' : ''}$offset hours')  < datetime(CURRENT_DATE, '${offset > 0 ? '+' : ''}$offset hours')", 
     parameterValue: [personId]).toList();
     return dueTasks;
   }

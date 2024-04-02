@@ -1,4 +1,4 @@
-package com.ticodevscr.gabos_task_list
+package com.ticodevscr.epictasks
 
 import io.flutter.embedding.android.FlutterActivity
 

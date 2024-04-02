@@ -52,23 +52,32 @@ class LocalNotificationHelper{
     String? body,
     String? data,
   }) async {
-    return AwesomeNotifications().createNotification(
-      content: NotificationContent(
-        id: generateRandomInteger(),
-        channelKey: remindersChannelId,
-        title: title,
-        body: body,
-        payload: {'id':id.toString()},
-        wakeUpScreen: true,
-        autoDismissible: false,
-        category: NotificationCategory.Reminder,
-      ),
-      schedule: NotificationCalendar.fromDate(date: dateTime),
-    );
+    int notifId = generateRandomInteger();
+    try{
+
+      bool result = await AwesomeNotifications().createNotification(
+        content: NotificationContent(
+          id: notifId,
+          channelKey: remindersChannelId,
+          title: title,
+          body: body,
+          payload: {'id':id.toString()},
+          wakeUpScreen: true,
+          autoDismissible: false,
+          category: NotificationCategory.Reminder,
+        ),
+        schedule: NotificationCalendar.fromDate(date: dateTime),
+      );
+      return result;
+    }catch (e) {
+      print('Error al crear la notificación: $e');
+      return false;
+    }
+    
   }
 
   static int generateRandomInteger() {
-    return Random().nextInt(1 << 32); // Genera un número aleatorio entre 0 y 4.294.967.295
+    return Random().nextInt(1 << 31); // Genera un número aleatorio entre 0 y 4.294.967.295
   }
 
 }
