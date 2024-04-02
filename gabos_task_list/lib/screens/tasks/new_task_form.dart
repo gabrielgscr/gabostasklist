@@ -125,6 +125,8 @@ class NewTasKForm extends StatelessWidget {
         //Multiples lineas
         maxLines: 5,
         maxLength: 1000,
+        keyboardType: TextInputType.text,
+        textCapitalization: TextCapitalization.sentences,
         decoration: InputDecorations.defaultInputDecoration(
           hintText: "Descripción de la tarea", labelText: "Descripción",
           prefixIcon: Icons.description,
@@ -151,6 +153,8 @@ class NewTasKForm extends StatelessWidget {
         
         },
         maxLength: 100,
+        keyboardType: TextInputType.text,
+        textCapitalization: TextCapitalization.sentences,
         decoration: InputDecorations.defaultInputDecoration(
           hintText: "Titulo de la tarea", 
           labelText: "Titulo", 
