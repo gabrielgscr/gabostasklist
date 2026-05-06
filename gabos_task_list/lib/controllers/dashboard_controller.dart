@@ -10,6 +10,11 @@ class DashboardController extends GetxController {
   var todayExpanded = true.obs;
   var tomorrowExpanded = false.obs;
   var dueExpanded = false.obs;
+  var reloadKey = 0.obs;
+
+  void notifyDataChanged() {
+    reloadKey.value++;
+  }
 
   Future<List<Task>> getTodayTasks(int personId) async {
     final currentTimezone = getCurrentTimezone();

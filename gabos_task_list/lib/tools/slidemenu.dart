@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:gabos_task_list/tools/helper.dart';
 
 class SlideMenu extends StatefulWidget {
-  SlideMenu({this.child, this.menuItems});
+  const SlideMenu({super.key, this.child, this.menuItems});
   final Widget? child;
   final List<Widget>? menuItems;
   @override
-  _SlideMenuState createState() => _SlideMenuState();
+  State<SlideMenu> createState() => _SlideMenuState();
 }
 
 class _SlideMenuState extends State<SlideMenu>
@@ -17,7 +17,9 @@ class _SlideMenuState extends State<SlideMenu>
   void initState() {
     super.initState();
     _controller = AnimationController(
-        vsync: this, duration: const Duration(milliseconds: 200));
+      vsync: this,
+      duration: const Duration(milliseconds: 200),
+    );
   }
 
   @override
@@ -31,8 +33,9 @@ class _SlideMenuState extends State<SlideMenu>
   @override
   Widget build(BuildContext context) {
     final animation = Tween(
-            begin: const Offset(0.0, 0.0), end: const Offset(-0.4, 0.0))
-        .animate(CurveTween(curve: Curves.decelerate).animate(_controller!));
+      begin: const Offset(0.0, 0.0),
+      end: const Offset(-0.4, 0.0),
+    ).animate(CurveTween(curve: Curves.decelerate).animate(_controller!));
 
     return GestureDetector(
       onHorizontalDragUpdate: (data) {
@@ -43,8 +46,9 @@ class _SlideMenuState extends State<SlideMenu>
       },
       onHorizontalDragEnd: (data) {
         if (data.primaryVelocity! > 2500) {
-          _controller!
-              .animateTo(.0); //close menu on fast swipe in the right direction
+          _controller!.animateTo(
+            .0,
+          ); //close menu on fast swipe in the right direction
         } else if (_controller!.value >= .5 ||
             data.primaryVelocity! <
                 -2500) // fully open if dragged a lot to left or on fast swipe to left
@@ -80,9 +84,7 @@ class _SlideMenuState extends State<SlideMenu>
                             color: Colors.black26,
                             child: Row(
                               children: widget.menuItems!.map((child) {
-                                return Expanded(
-                                  child: child,
-                                );
+                                return Expanded(child: child);
                               }).toList(),
                             ),
                           ),
@@ -93,7 +95,7 @@ class _SlideMenuState extends State<SlideMenu>
                 );
               },
             ),
-          )
+          ),
         ],
       ),
     );

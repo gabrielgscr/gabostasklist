@@ -38,8 +38,10 @@ class RegisterScreen extends StatelessWidget {
     return TextButton(
       onPressed: () => Get.off(() => const LoginScreen()),
       style: ButtonStyle(
-        overlayColor: MaterialStateProperty.all(Colors.indigo.withOpacity(0.1)),
-        shape: MaterialStateProperty.all(const StadiumBorder()),
+        overlayColor: WidgetStateProperty.all(
+          Colors.indigo.withValues(alpha: 0.1),
+        ),
+        shape: WidgetStateProperty.all(const StadiumBorder()),
       ),
       child: const Text(
         '¿Ya tienes una cuenta?',

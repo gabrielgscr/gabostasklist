@@ -1,4 +1,3 @@
-import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
@@ -6,6 +5,7 @@ import 'package:gabos_task_list/controllers/global_values_controller.dart';
 import 'package:gabos_task_list/model/generic_response.dart';
 import 'package:gabos_task_list/model/model.dart';
 import 'package:gabos_task_list/model/user_info.dart';
+import 'package:gabos_task_list/routes/routes.dart';
 import 'package:gabos_task_list/screens/dashboard/welcome_screen.dart';
 import 'package:gabos_task_list/screens/login/login_screen.dart';
 import 'package:gabos_task_list/tools/local_notifications_helper.dart';
@@ -20,14 +20,15 @@ void main() async {
   WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
   FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
   tz.initializeTimeZones();
-  LocalNotificationHelper.initializeLocalNotifications();
-  return runApp(const MyApp());
-} 
+  await LocalNotificationHelper.initializeLocalNotifications();
+  runApp(const MyApp());
+}
 
 class MyApp extends StatefulWidget {
   const MyApp({super.key});
 
-  static final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+  static final GlobalKey<NavigatorState> navigatorKey =
+      GlobalKey<NavigatorState>();
 
   @override
   State<MyApp> createState() => _MyAppState();
@@ -40,13 +41,7 @@ class _MyAppState extends State<MyApp> {
 
   @override
   void initState() {
-    // Only after at least the action method is set, the notification events are delivered
-    AwesomeNotifications().setListeners(
-        onActionReceivedMethod:         NotificationController.onActionReceivedMethod,
-        onNotificationCreatedMethod:    NotificationController.onNotificationCreatedMethod,
-        onNotificationDisplayedMethod:  NotificationController.onNotificationDisplayedMethod,
-        onDismissActionReceivedMethod:  NotificationController.onDismissActionReceivedMethod
-    );
+    LocalNotificationHelper.requestLocalNotificationPermission();
     super.initState();
   }
 
@@ -59,14 +54,21 @@ class _MyAppState extends State<MyApp> {
     if (username.isEmpty || password.isEmpty) {
       return GenericResponse(-1, 'Usuario y contraseña son requeridos');
     } else {
-      Person? person =
-          await Person().select().email.equals(username).toSingle();
+      Person? person = await Person()
+          .select()
+          .email
+          .equals(username)
+          .toSingle();
       if (person == null) {
         return GenericResponse(-1, 'Usuario y/o contraseña incorrecta');
       } else {
         String cyphPass = PasswordEncryption.encryptPassword(password);
         if (person.password == cyphPass) {
-          return GenericResponse(1, 'Usuario autenticado', responseObject: person);
+          return GenericResponse(
+            1,
+            'Usuario autenticado',
+            responseObject: person,
+          );
         } else {
           return GenericResponse(-1, 'Usuario y/o contraseña incorrecta');
         }
@@ -75,9 +77,8 @@ class _MyAppState extends State<MyApp> {
   }
 
   Future<void> _initPreferences() async {
-    
     _isRememberMeActive = await rememberIsChecked();
-    if(_isRememberMeActive){
+    if (_isRememberMeActive) {
       UserInfo info = await getUserInfo();
       GenericResponse response = await login(info.name, info.password);
       if (response.responseCode == 1) {
@@ -91,50 +92,53 @@ class _MyAppState extends State<MyApp> {
 
   GetMaterialApp _buildMaterialApp(GlobalValuesController c) {
     return GetMaterialApp(
-    debugShowCheckedModeBanner: false,
-    title: 'Material App',
-    initialRoute: '/',
-    //routes: routes,
-    onGenerateRoute: (settings) {
-      LocalNotificationHelper.requestLocalNotificationPermission();
-      FlutterNativeSplash.remove();
-      switch (settings.name) {
-        case '/':
-          if(_isRememberMeActive && _areCredentialsValid){
-            c.personId.value = _person!.personId!;
-            c.username = _person!.email!;
-            return MaterialPageRoute(builder: (context) =>
-              const WelcomeScreen()
-          );
-          }
-          return MaterialPageRoute(builder: (context) =>
-              const LoginScreen()
-          );
+      debugShowCheckedModeBanner: false,
+      title: 'Material App',
+      initialRoute: '/',
+      onGenerateRoute: (settings) {
+        FlutterNativeSplash.remove();
+        switch (settings.name) {
+          case '/':
+            if (_isRememberMeActive && _areCredentialsValid) {
+              c.personId.value = _person!.personId!;
+              c.username = _person!.email!;
+              return MaterialPageRoute(
+                builder: (context) => const WelcomeScreen(),
+              );
+            }
+            return MaterialPageRoute(builder: (context) => const LoginScreen());
 
-        case '/notification-page':
-          return MaterialPageRoute(builder: (context) {
-            final ReceivedAction receivedAction = settings
-                .arguments as ReceivedAction;
-            //return MyNotificationPage(receivedAction: receivedAction);
-            return const LoginScreen();
-          });
+          case '/notification-page':
+            return MaterialPageRoute(
+              builder: (context) {
+                return const LoginScreen();
+              },
+            );
 
-        default:
-          assert(false, 'Page ${settings.name} not found');
-          return null;
-      }
-    },
-    localizationsDelegates: const [
-      GlobalMaterialLocalizations.delegate,
-      GlobalWidgetsLocalizations.delegate,
-      GlobalCupertinoLocalizations.delegate,
-    ],
-    supportedLocales: const [
-      Locale('es', ''), // Español
-      Locale('en', ''), // Inglés
-    ],
-    theme: appTheme,
-  );
+          default:
+            // Intenta usar el mapa de rutas estándar (sin el /)
+            final routeKey = settings.name?.replaceFirst('/', '') ?? '';
+            if (routeKey.isNotEmpty && routes.containsKey(routeKey)) {
+              return MaterialPageRoute(
+                builder: routes[routeKey]!,
+                settings: settings,
+              );
+            }
+            assert(false, 'Page ${settings.name} not found');
+            return null;
+        }
+      },
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: const [
+        Locale('es', ''), // Español
+        Locale('en', ''), // Inglés
+      ],
+      theme: appTheme,
+    );
   }
 
   @override
@@ -143,44 +147,14 @@ class _MyAppState extends State<MyApp> {
     return FutureBuilder(
       future: _initPreferences(),
       builder: (context, snapshot) {
-        if(snapshot.connectionState == ConnectionState.done){
+        if (snapshot.connectionState == ConnectionState.done) {
           return _buildMaterialApp(c);
         } else {
-          return const MaterialApp(home: Scaffold(body: Center(child: CircularProgressIndicator())));
+          return const MaterialApp(
+            home: Scaffold(body: Center(child: CircularProgressIndicator())),
+          );
         }
-      }
+      },
     );
-  }
-}
-
-
-class NotificationController {
-  /// Use this method to detect when a new notification or a schedule is created
-  @pragma("vm:entry-point")
-  static Future <void> onNotificationCreatedMethod(ReceivedNotification receivedNotification) async {
-    // Your code goes here
-  }
-
-  /// Use this method to detect every time that a new notification is displayed
-  @pragma("vm:entry-point")
-  static Future <void> onNotificationDisplayedMethod(ReceivedNotification receivedNotification) async {
-    // Your code goes here
-  }
-
-  /// Use this method to detect if the user dismissed a notification
-  @pragma("vm:entry-point")
-  static Future <void> onDismissActionReceivedMethod(ReceivedAction receivedAction) async {
-    // Your code goes here
-  }
-
-  /// Use this method to detect when the user taps on a notification or action button
-  @pragma("vm:entry-point")
-  static Future <void> onActionReceivedMethod(ReceivedAction receivedAction) async {
-    // Your code goes here
-
-    // Navigate into pages, avoiding to open the notification details page over another details page already opened
-    MyApp.navigatorKey.currentState?.pushNamedAndRemoveUntil('/notification-page',
-            (route) => (route.settings.name != '/notification-page') || route.isFirst,
-        arguments: receivedAction);
   }
 }

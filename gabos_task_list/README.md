@@ -79,7 +79,7 @@ flutter build apk --split-per-abi
 
 - `get`
 - `sqfentity` y `sqfentity_gen`
-- `awesome_notifications`
+- `flutter_local_notifications`
 - `shared_preferences`
 - `encrypt`
 - `http`
@@ -200,7 +200,7 @@ flutter build apk --split-per-abi
 
 - `get`
 - `sqfentity` and `sqfentity_gen`
-- `awesome_notifications`
+- `flutter_local_notifications`
 - `shared_preferences`
 - `encrypt`
 - `http`

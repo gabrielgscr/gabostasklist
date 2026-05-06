@@ -1,6 +1,4 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:gabos_task_list/controllers/global_values_controller.dart';
 import 'package:gabos_task_list/controllers/task_controller.dart';
 import 'package:gabos_task_list/model/model.dart';
@@ -11,50 +9,54 @@ import 'package:get/get.dart';
 
 class TaskMainList extends StatelessWidget {
   const TaskMainList({Key? key}) : super(key: key);
-  
 
   @override
   Widget build(BuildContext context) {
     return Container(
-    width: double.infinity,
-    height: double.infinity,
-    decoration: const BoxDecoration(
-      image: DecorationImage(
-        image: AssetImage('assets/desktop.jpg'), // Cambia esto a la ruta de tu imagen.
-        fit: BoxFit.cover,
+      width: double.infinity,
+      height: double.infinity,
+      decoration: const BoxDecoration(
+        image: DecorationImage(
+          image: AssetImage(
+            'assets/desktop.jpg',
+          ), // Cambia esto a la ruta de tu imagen.
+          fit: BoxFit.cover,
+        ),
       ),
-    ),
-    child: FilteredTaskList(),
-  );
+      child: FilteredTaskList(),
+    );
   }
 }
 
 class FilteredTaskList extends StatelessWidget {
   FilteredTaskList({super.key});
   final _filterController = TextEditingController();
-  
+  final TaskController _taskController = Get.isRegistered<TaskController>()
+      ? Get.find<TaskController>()
+      : Get.put(TaskController());
+
   Widget _createTaskList() {
-    var tasks = Get.put(TaskController());
     var global = Get.find<GlobalValuesController>();
-    return SingleChildScrollView(
-      child: FutureBuilder(
-      future: tasks.getTasks(global.personId.value),
+    return FutureBuilder(
+      future: _taskController.getTasks(global.personId.value),
       builder: (context, snapshot) {
         if (!snapshot.hasData) {
           return const Center(child: CircularProgressIndicator());
-        }else if (snapshot.data!.isEmpty) {
+        } else if (snapshot.data!.isEmpty) {
           return const Center(child: Text('Ingresa más tareas'));
-         } else {
+        } else {
           List<Task> tasks = snapshot.data!;
-          return TaskListView(tasks: tasks, tasksColor: notesColor!, canScroll: false,);
+          return TaskListView(
+            tasks: tasks,
+            tasksColor: notesColor!,
+            canScroll: true,
+          );
         }
       },
-            ),
     );
   }
 
   Widget _createFilter() {
-    var tasks = Get.put(TaskController());
     var global = Get.find<GlobalValuesController>();
     return Container(
       padding: defaultPadding,
@@ -67,35 +69,35 @@ class FilteredTaskList extends StatelessWidget {
               fillColor: backgroundAccentColor,
               padding: 5,
               child: TextField(
-                  controller: _filterController,
-                  decoration: const InputDecoration(
-                    labelText: 'Filtrar tareas',
-                    prefixIcon: Icon(Icons.search),
-                  ),
+                controller: _filterController,
+                decoration: const InputDecoration(
+                  labelText: 'Filtrar tareas',
+                  prefixIcon: Icon(Icons.search),
                 ),
+              ),
             ),
           ),
-            //Boton para filtrar
-            IconButton(
-              icon: const Icon(Icons.filter_alt),
-              onPressed: () {
-                tasks.filter.value = _filterController.text;
-                if(_filterController.text.isEmpty) {
-                  tasks.getTasks(global.personId.value);
-                } else {
-                  tasks.getTasks(global.personId.value);
-                }
-              },
-            ),
-            //Limpiar el filtro
-            IconButton(
-              icon: const Icon(Icons.filter_alt_off),
-              onPressed: () {
-                _filterController.clear();
-                tasks.filter.value = '';
-                tasks.getTasks(global.personId.value);
-              },
-            ),
+          //Boton para filtrar
+          IconButton(
+            icon: const Icon(Icons.filter_alt),
+            onPressed: () {
+              _taskController.filter.value = _filterController.text;
+              if (_filterController.text.isEmpty) {
+                _taskController.getTasks(global.personId.value);
+              } else {
+                _taskController.getTasks(global.personId.value);
+              }
+            },
+          ),
+          //Limpiar el filtro
+          IconButton(
+            icon: const Icon(Icons.filter_alt_off),
+            onPressed: () {
+              _filterController.clear();
+              _taskController.filter.value = '';
+              _taskController.getTasks(global.personId.value);
+            },
+          ),
         ],
       ),
     );
@@ -109,14 +111,16 @@ class FilteredTaskList extends StatelessWidget {
         children: [
           const Text('Mostrar completadas'),
           defaultVSpace,
-          Obx(() => Switch(
-            value: Get.find<TaskController>().showCompleted.value,
-            onChanged: (value) {
-              Get.find<TaskController>().showCompleted.value = value;
-            },
-            activeColor: activeTrackColor,
-            activeTrackColor: strongBlue,
-          )),
+          Obx(
+            () => Switch(
+              value: _taskController.showCompleted.value,
+              onChanged: (value) {
+                _taskController.showCompleted.value = value;
+              },
+              activeThumbColor: activeTrackColor,
+              activeTrackColor: strongBlue,
+            ),
+          ),
         ],
       ),
     );
@@ -124,14 +128,16 @@ class FilteredTaskList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Obx(() => Column(
-      children: [
-        _createFilter(),
-        _createShowCompleted(),
-        defaultVSpace,
-        Expanded(child: SingleChildScrollView(child: _createTaskList())),
-      ],
-    ));
+    return Obx(() {
+      _taskController.reloadKey.value;
+      return Column(
+        children: [
+          _createFilter(),
+          _createShowCompleted(),
+          defaultVSpace,
+          Expanded(child: _createTaskList()),
+        ],
+      );
+    });
   }
 }
-

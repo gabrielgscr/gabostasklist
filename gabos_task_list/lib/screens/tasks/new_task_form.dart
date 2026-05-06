@@ -31,7 +31,7 @@ class NewTasKForm extends StatelessWidget {
       fillColor: Colors.grey[200],
       padding: 5,
       child: DropdownButtonFormField(
-        value: newTaskController.reminderCode.value,
+        initialValue: newTaskController.reminderCode.value,
         items: const [
           DropdownMenuItem(value: 0, child: Text('Sin recordatorio')),
           DropdownMenuItem(value: 1, child: Text('15 minutos antes')),
@@ -210,7 +210,7 @@ class NewTasKForm extends StatelessWidget {
             globalValuesController.personId.value,
           );
           if (response.responseCode == 0) {
-            Get.back();
+            Get.back(result: true);
           }
           showSnackbar(
             response.responseText,
@@ -235,7 +235,7 @@ class NewTasKForm extends StatelessWidget {
             onChanged: (value) {
               Get.find<NewTaskController>().enabledHours.value = value;
             },
-            activeColor: activeTrackColor,
+            activeThumbColor: activeTrackColor,
             activeTrackColor: strongBlue,
           ),
         ),

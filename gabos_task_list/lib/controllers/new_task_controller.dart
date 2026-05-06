@@ -1,9 +1,10 @@
 import 'package:gabos_task_list/model/generic_response.dart';
 import 'package:gabos_task_list/model/model.dart';
 import 'package:gabos_task_list/tools/local_notifications_helper.dart';
+import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 
-class NewTaskController extends GetxController{
+class NewTaskController extends GetxController {
   var description = ''.obs;
   var dueDate = DateTime.now().obs;
   var title = ''.obs;
@@ -19,40 +20,52 @@ class NewTaskController extends GetxController{
         allDayTask: !enabledHours.value,
         createdDate: DateTime.now(),
         updatedDate: DateTime.now(),
-        personId: personId
+        personId: personId,
       );
       var result = await newTask.save();
-      if(reminderCode.value > 0){
+
+      if (result == null || result <= 0) {
+        return GenericResponse(-1, 'Error al crear la tarea');
+      }
+
+      String message = 'Tarea creada';
+
+      if (reminderCode.value > 0) {
         var response = await createNewReminder(newTask.id!);
-        if(response.responseCode == 0){
-          bool scheduleResult = await _scheduleReminder(response.responseObject as Reminder);
-          print("Se canlendarizó el recordatorio: $scheduleResult");
+        if (response.responseCode == 0) {
+          bool scheduleResult = await _scheduleReminder(
+            response.responseObject as Reminder,
+          );
+          debugPrint('Se calendarizo el recordatorio: $scheduleResult');
+          if (!scheduleResult) {
+            message =
+                'Tarea creada, pero no se pudo calendarizar el recordatorio';
+          }
+        } else {
+          message = 'Tarea creada, pero no se pudo crear el recordatorio';
         }
       }
-      return GenericResponse(
-        result! > 0 ? 0 : -1,
-        result > 0 ? 'Tarea creada' : 'Error al crear la tarea',
-        responseObject: newTask
-      );
+
+      return GenericResponse(0, message, responseObject: newTask);
     } catch (e) {
       return GenericResponse(-2, 'Excepción al crear la tarea');
     }
   }
 
-   Future<GenericResponse> createNewReminder(int taskId) async {
+  Future<GenericResponse> createNewReminder(int taskId) async {
     try {
       Reminder newReminder = Reminder(
         reminderDate: dueDate.value,
         reminderType: reminderCode.value,
         createdDate: DateTime.now(),
         updatedDate: DateTime.now(),
-        taskId: taskId
+        taskId: taskId,
       );
       var result = await newReminder.save();
       return GenericResponse(
         result! > 0 ? 0 : -1,
         result > 0 ? 'Recordatorio creado' : 'Error al crear el recordatorio',
-        responseObject: newReminder
+        responseObject: newReminder,
       );
     } catch (e) {
       return GenericResponse(-2, 'Excepción al crear el recordatorio');
@@ -65,13 +78,13 @@ class NewTaskController extends GetxController{
       dateTime: getReminder(),
       title: title.value,
       body: description.value,
-      data: reminder.id.toString()
+      data: reminder.id.toString(),
     );
   }
 
-  DateTime getReminder(){
+  DateTime getReminder() {
     DateTime fecha = dueDate.value;
-    switch(reminderCode.value){
+    switch (reminderCode.value) {
       case 1:
         fecha = fecha.subtract(const Duration(minutes: 15));
         break;
@@ -90,5 +103,4 @@ class NewTaskController extends GetxController{
     }
     return fecha;
   }
-
 }

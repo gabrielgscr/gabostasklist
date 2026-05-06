@@ -21,8 +21,10 @@ class LoginScreen extends StatelessWidget {
     return TextButton(
       onPressed: () => Get.off(() => const RegisterScreen()),
       style: ButtonStyle(
-        overlayColor: MaterialStateProperty.all(Colors.indigo.withOpacity(0.1)),
-        shape: MaterialStateProperty.all(const StadiumBorder()),
+        overlayColor: WidgetStateProperty.all(
+          Colors.indigo.withValues(alpha: 0.1),
+        ),
+        shape: WidgetStateProperty.all(const StadiumBorder()),
       ),
       child: const Text(
         'Crear una nueva cuenta',
@@ -239,7 +241,7 @@ class _LoginForm extends StatelessWidget {
             removeUserInfo();
           }
         },
-        activeColor: Colors.white,
+        activeThumbColor: Colors.white,
       ),
     );
   }
