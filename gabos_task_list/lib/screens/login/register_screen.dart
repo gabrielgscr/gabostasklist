@@ -36,35 +36,40 @@ class RegisterScreen extends StatelessWidget {
 
   Widget _registerBtn() {
     return TextButton(
-        onPressed: () => Get.off(() => const LoginScreen()),
-        style: ButtonStyle(
-            overlayColor:
-                MaterialStateProperty.all(Colors.indigo.withOpacity(0.1)),
-            shape: MaterialStateProperty.all(const StadiumBorder())),
-        child: const Text(
-          '¿Ya tienes una cuenta?',
-          style: TextStyle(fontSize: 18, color: Colors.white70),
-        ));
+      onPressed: () => Get.off(() => const LoginScreen()),
+      style: ButtonStyle(
+        overlayColor: MaterialStateProperty.all(Colors.indigo.withOpacity(0.1)),
+        shape: MaterialStateProperty.all(const StadiumBorder()),
+      ),
+      child: const Text(
+        '¿Ya tienes una cuenta?',
+        style: TextStyle(fontSize: 18, color: Colors.white70),
+      ),
+    );
   }
 
   Widget _registerFrm(BuildContext context) {
     return CardContainer(
-        child: Column(
-      children: [
-        const SizedBox(height: 10),
-        Row(
-          children: [
-            IconButton(
+      child: Column(
+        children: [
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              IconButton(
                 onPressed: () => Get.off(() => const LoginScreen()),
-                icon: const Icon(Icons.arrow_back_ios_new_rounded)),
-            Text('Crear cuenta',
-                style: Theme.of(context).textTheme.headlineMedium),
-          ],
-        ),
-        const SizedBox(height: 30),
-        _RegisterForm(),
-      ],
-    ));
+                icon: const Icon(Icons.arrow_back_ios_new_rounded),
+              ),
+              Text(
+                'Crear cuenta',
+                style: Theme.of(context).textTheme.headlineMedium,
+              ),
+            ],
+          ),
+          const SizedBox(height: 30),
+          _RegisterForm(),
+        ],
+      ),
+    );
   }
 }
 
@@ -96,27 +101,36 @@ class _RegisterForm extends StatelessWidget {
   Widget _registerButton() {
     final RegisterController c = Get.find<RegisterController>();
     return MaterialButton(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-        disabledColor: Colors.grey,
-        elevation: 0,
-        color: strongBlue,
-        onPressed: c.loading.value
-            ? null
-            : () async {
-                c.loading.value = true;
-                GenericResponse response = await c.createUser();
-                showSnackbar(response.responseText);
-                c.loading.value = false;
-                //showSnackbar("Usuario creado correctamente");
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      disabledColor: Colors.grey,
+      elevation: 0,
+      color: strongBlue,
+      onPressed: c.loading.value
+          ? null
+          : () async {
+              c.loading.value = true;
+              GenericResponse response = await c.createUser();
+              showSnackbar(
+                response.responseText,
+                type: response.responseCode == 1
+                    ? AppSnackbarType.success
+                    : AppSnackbarType.error,
+              );
+              c.loading.value = false;
+              if (response.responseCode == 1) {
+                await Future.delayed(const Duration(milliseconds: 300));
                 Get.off(() => const LoginScreen());
-              },
-        child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 80, vertical: 15),
-            child: const Text(
-              'Registrarse',
-              //loginForm.isLoading ? 'Espere' : 'Ingresar',
-              style: TextStyle(color: Colors.white),
-            )));
+              }
+            },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 80, vertical: 15),
+        child: const Text(
+          'Registrarse',
+          //loginForm.isLoading ? 'Espere' : 'Ingresar',
+          style: TextStyle(color: Colors.white),
+        ),
+      ),
+    );
   }
 
   Widget _nameBox() {
@@ -126,9 +140,10 @@ class _RegisterForm extends StatelessWidget {
         autocorrect: false,
         keyboardType: TextInputType.emailAddress,
         decoration: InputDecorations.defaultInputDecoration(
-            hintText: 'Nombre',
-            labelText: 'Nombre',
-            prefixIcon: Icons.person_outline),
+          hintText: 'Nombre',
+          labelText: 'Nombre',
+          prefixIcon: Icons.person_outline,
+        ),
         onChanged: (value) => c.name = value,
         validator: (value) {
           return (value != null && value.length >= 2)
@@ -146,9 +161,10 @@ class _RegisterForm extends StatelessWidget {
         autocorrect: false,
         keyboardType: TextInputType.emailAddress,
         decoration: InputDecorations.defaultInputDecoration(
-            hintText: 'Apellido',
-            labelText: 'Apellido',
-            prefixIcon: Icons.person_outline),
+          hintText: 'Apellido',
+          labelText: 'Apellido',
+          prefixIcon: Icons.person_outline,
+        ),
         onChanged: (value) => c.lastname = value,
         validator: (value) {
           return (value != null && value.length >= 2)
@@ -167,9 +183,10 @@ class _RegisterForm extends StatelessWidget {
         obscureText: true,
         keyboardType: TextInputType.emailAddress,
         decoration: InputDecorations.defaultInputDecoration(
-            hintText: '*****',
-            labelText: 'Contraseña',
-            prefixIcon: Icons.lock_outline),
+          hintText: '*****',
+          labelText: 'Contraseña',
+          prefixIcon: Icons.lock_outline,
+        ),
         onChanged: (value) {
           c.password = value;
           c.passwordConfirm = value;
@@ -190,15 +207,16 @@ class _RegisterForm extends StatelessWidget {
         autocorrect: false,
         keyboardType: TextInputType.emailAddress,
         decoration: InputDecorations.defaultInputDecoration(
-            hintText: 'name@domain.com',
-            labelText: 'Correo electrónico',
-            prefixIcon: Icons.alternate_email_rounded),
+          hintText: 'name@domain.com',
+          labelText: 'Correo electrónico',
+          prefixIcon: Icons.alternate_email_rounded,
+        ),
         onChanged: (value) => c.email = value,
         validator: (value) {
           String pattern =
               r'^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$';
           RegExp regExp = RegExp(pattern);
-    
+
           return regExp.hasMatch(value ?? '')
               ? null
               : 'El valor ingresado no luce como un correo';

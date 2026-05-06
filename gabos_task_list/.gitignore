@@ -43,4 +43,15 @@ app.*.map.json
 /android/app/profile
 /android/app/release
 
-TicoDevs.jks
+# Security / local secrets
+*.jks
+*.keystore
+**/key.properties
+
+# Firebase config (if used)
+**/google-services.json
+**/GoogleService-Info.plist
+
+# Local environment files
+.env
+.env.*
