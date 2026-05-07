@@ -13,10 +13,14 @@ Follow these rules when changing this codebase.
 - Data persistence uses SQFEntity models in lib/model.
 - Reusable UI components are in lib/widgets.
 - Cross-cutting helpers (notifications, snackbars, preferences, encryption) are in lib/tools.
+- Prefer StatelessWidget plus GetX reactive widgets for screens and forms.
+- Do not introduce StatefulWidget for screen-level state when GetX controller state is sufficient.
+- If a StatefulWidget is required for a narrow UI concern, justify it explicitly and keep the mutable state local.
 
 ## Layer Responsibilities
 - Screens in lib/screens should keep orchestration light.
 - Controllers in lib/controllers should own async flows, validation, and interaction with model/tools.
+- Controllers should also own form state and text controllers when that state participates in the GetX flow.
 - Model definitions in lib/model/model.dart are source of truth for schema changes.
 - Do not edit generated files in lib/model/model.g.dart and lib/model/model.g.view.dart manually.
 
@@ -52,3 +56,5 @@ After code edits:
 - Preserve existing naming and project conventions.
 - Avoid introducing new architectural patterns unless required by the task.
 - If a migration is needed, explain why and limit scope.
+- Before editing, state the intended changes and the execution plan.
+- After editing, confirm what changed and what was validated.

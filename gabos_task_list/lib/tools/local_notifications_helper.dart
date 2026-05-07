@@ -319,4 +319,10 @@ class LocalNotificationHelper {
     await _plugin.cancel(safeId);
     _log('[Notif][Debug] Cancelada notificación de prueba id=$safeId');
   }
+
+  static Future<void> cancelLocalNotification(int id) async {
+    final safeId = _normalizeNotificationId(id);
+    await _plugin.cancel(safeId);
+    _log('[Notif] Cancelada notificación id=$safeId (original: $id)');
+  }
 }

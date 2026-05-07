@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:gabos_task_list/controllers/dashboard_controller.dart';
 import 'package:gabos_task_list/controllers/global_values_controller.dart';
+import 'package:gabos_task_list/controllers/new_task_controller.dart';
 import 'package:gabos_task_list/controllers/task_controller.dart';
 import 'package:gabos_task_list/controllers/welcome_controller.dart';
 import 'package:gabos_task_list/screens/dashboard/dashboard.dart';
@@ -23,7 +24,8 @@ class WelcomeScreen extends StatelessWidget {
         // Add a task button to the app bar
         IconButton(
           onPressed: () async {
-            final result = await Get.to(() => NewTasKForm());
+            Get.delete<NewTaskController>(force: true);
+            final result = await Get.to(() => const NewTasKForm());
             if (result == true) {
               if (Get.isRegistered<TaskController>()) {
                 Get.find<TaskController>().notifyDataChanged();

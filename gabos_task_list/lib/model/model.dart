@@ -40,10 +40,11 @@ const tableTask = SqfEntityTable(
     SqfEntityField('updatedDate', DbType.datetime),
     //relation with person table
     SqfEntityFieldRelationship(
-        parentTable: tablePerson,
-        deleteRule: DeleteRule.CASCADE,
-        defaultValue: 1,
-        fieldName: 'personId'),
+      parentTable: tablePerson,
+      deleteRule: DeleteRule.CASCADE,
+      defaultValue: 1,
+      fieldName: 'personId',
+    ),
   ],
 );
 
@@ -59,10 +60,11 @@ const tableReminder = SqfEntityTable(
     SqfEntityField('updatedDate', DbType.datetime),
     //relation with task table
     SqfEntityFieldRelationship(
-        parentTable: tableTask,
-        deleteRule: DeleteRule.CASCADE,
-        defaultValue: 1,
-        fieldName: 'taskId'),
+      parentTable: tableTask,
+      deleteRule: DeleteRule.CASCADE,
+      defaultValue: 1,
+      fieldName: 'taskId',
+    ),
   ],
 );
 

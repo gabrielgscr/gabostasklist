@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
+import 'dart:io';
 import 'package:gabos_task_list/controllers/global_values_controller.dart';
 import 'package:gabos_task_list/controllers/profile_controller.dart';
 import 'package:gabos_task_list/model/model.dart';
-import 'package:gabos_task_list/tools/tools.dart';
 import 'package:gabos_task_list/widgets/theme.dart';
 import 'package:get/get.dart';
 
@@ -62,7 +62,52 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  Widget _imageProfile() {
+  Future<void> _showImageSourceOptions(
+    BuildContext context,
+    ProfileController controller,
+    int personId,
+  ) async {
+    await showModalBottomSheet<void>(
+      context: context,
+      builder: (sheetContext) {
+        return SafeArea(
+          child: Wrap(
+            children: [
+              ListTile(
+                leading: const Icon(Icons.camera_alt),
+                title: const Text('Tomar foto'),
+                onTap: () async {
+                  Navigator.of(sheetContext).pop();
+                  await controller.pickImageFromCamera(personId);
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.photo_library),
+                title: const Text('Elegir de galería'),
+                onTap: () async {
+                  Navigator.of(sheetContext).pop();
+                  await controller.pickImageFromGallery(personId);
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.refresh),
+                title: const Text('Restablecer foto'),
+                onTap: () async {
+                  Navigator.of(sheetContext).pop();
+                  await controller.resetProfileImage(personId);
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _imageProfile(BuildContext context) {
+    ProfileController controller = Get.find<ProfileController>();
+    GlobalValuesController global = Get.find<GlobalValuesController>();
+
     return Stack(
       children: [
         Container(
@@ -97,34 +142,64 @@ class ProfileScreen extends StatelessWidget {
                 SizedBox(
                   width: 120,
                   height: 120,
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(100),
-                    child: const Image(
-                      image: AssetImage('assets/astronauta.png'),
-                    ),
-                  ),
+                  child: Obx(() {
+                    final person = controller.currentPerson.value;
+                    final imagePath = controller.profileImagePath.value;
+                    final hasCustomImage =
+                        imagePath.isNotEmpty && File(imagePath).existsSync();
+
+                    return ClipRRect(
+                      borderRadius: BorderRadius.circular(100),
+                      child: hasCustomImage
+                          ? Image.file(
+                              File(imagePath),
+                              key: ValueKey(
+                                '${person?.personId}-${controller.profileImageVersion.value}',
+                              ),
+                              fit: BoxFit.cover,
+                            )
+                          : const Image(
+                              image: AssetImage('assets/astronauta.png'),
+                              fit: BoxFit.cover,
+                            ),
+                    );
+                  }),
                 ),
                 Positioned(
                   bottom: 0,
                   right: 0,
-                  child: SizedBox(
-                    height: 40,
-                    width: 40,
-                    child: TextButton(
-                      onPressed: () {
-                        showSnackbar(
-                          'Pronto podrás cambiar tu foto de perfil',
-                          type: AppSnackbarType.info,
-                        );
-                      },
-                      style: TextButton.styleFrom(
-                        padding: EdgeInsets.zero,
-                        backgroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(50),
+                  child: Obx(
+                    () => SizedBox(
+                      height: 40,
+                      width: 40,
+                      child: TextButton(
+                        onPressed: controller.isUpdatingPhoto.value
+                            ? null
+                            : () async {
+                                await _showImageSourceOptions(
+                                  context,
+                                  controller,
+                                  global.personId.value,
+                                );
+                              },
+                        style: TextButton.styleFrom(
+                          padding: EdgeInsets.zero,
+                          backgroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(50),
+                          ),
                         ),
+                        child: controller.isUpdatingPhoto.value
+                            ? SizedBox(
+                                width: 18,
+                                height: 18,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: strongBlue,
+                                ),
+                              )
+                            : Icon(Icons.camera_alt, color: strongBlue),
                       ),
-                      child: Icon(Icons.camera_alt, color: strongBlue),
                     ),
                   ),
                 ),
@@ -171,9 +246,10 @@ class ProfileScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     Get.put(ProfileController());
+
     return Column(
       children: [
-        _imageProfile(),
+        _imageProfile(context),
         defaultVSpace,
         SingleChildScrollView(
           child: Padding(
