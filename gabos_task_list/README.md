@@ -71,6 +71,8 @@ flutter pub run flutter_launcher_icons
 
 #### Compilar release Android (APK por ABI)
 
+Antes de compilar release, crea `android/key.properties` a partir de `android/key.properties.example` y completa la ruta del keystore, alias y contraseñas.
+
 ```bash
 flutter build apk --split-per-abi
 ```
@@ -191,6 +193,8 @@ flutter pub run flutter_launcher_icons
 ```
 
 #### Build Android release (APK per ABI)
+
+Before building release, create `android/key.properties` from `android/key.properties.example` and fill in the keystore path, alias, and passwords.
 
 ```bash
 flutter build apk --split-per-abi

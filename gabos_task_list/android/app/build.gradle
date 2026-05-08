@@ -28,6 +28,21 @@ if (keystorePropertiesFile.exists()) {
     keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
 }
 
+def releaseSigningKeys = ['storeFile', 'storePassword', 'keyAlias', 'keyPassword']
+def missingReleaseSigningKeys = releaseSigningKeys.findAll { !keystoreProperties.getProperty(it) }
+
+gradle.taskGraph.whenReady { taskGraph ->
+    def requiresReleaseSigning = taskGraph.allTasks.any { task ->
+        task.path in [':app:assembleRelease', ':app:packageRelease', ':app:bundleRelease']
+    }
+
+    if (requiresReleaseSigning && (!keystorePropertiesFile.exists() || !missingReleaseSigningKeys.isEmpty())) {
+        throw new GradleException(
+            'Missing Android release signing config. Create android/key.properties with storeFile, storePassword, keyAlias and keyPassword.'
+        )
+    }
+}
+
 android {
     namespace "com.ticodevscr.epictasks"
     compileSdk 36

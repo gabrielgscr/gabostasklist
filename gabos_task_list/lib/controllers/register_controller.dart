@@ -13,6 +13,7 @@ class RegisterController extends GetxController {
   var _name = ''.obs;
   var _lastname = ''.obs;
   var loading = false.obs;
+  var isPasswordVisible = false.obs;
 
   String get email => _email.value;
   String get password => _password.value;
@@ -25,6 +26,10 @@ class RegisterController extends GetxController {
   set passwordConfirm(String value) => _passwordConfirm.value = value;
   set name(String value) => _name.value = value;
   set lastname(String value) => _lastname.value = value;
+
+  void togglePasswordVisibility() {
+    isPasswordVisible.value = !isPasswordVisible.value;
+  }
 
   void clear() {
     _email.value = '';
@@ -39,12 +44,13 @@ class RegisterController extends GetxController {
       return GenericResponse(-1, 'Las contraseñas no coinciden');
     }
     Person person = Person(
-        firstName: name,
-        lastName: lastname,
-        email: email,
-        password: PasswordEncryption.encryptPassword(password),
-        createdDate: DateTime.now(),
-        updatedDate: DateTime.now());
+      firstName: name,
+      lastName: lastname,
+      email: email,
+      password: PasswordEncryption.encryptPassword(password),
+      createdDate: DateTime.now(),
+      updatedDate: DateTime.now(),
+    );
     int? response = await person.save();
     if (response! <= 0) {
       return GenericResponse(-1, 'Error al crear el usuario');

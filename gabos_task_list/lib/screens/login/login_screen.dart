@@ -168,30 +168,42 @@ class _LoginForm extends StatelessWidget {
   }
 
   Widget _passwordField() {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(10.0), // Aquí
-        border: Border.all(color: strongBlue, width: 2.0),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 10),
-        child: TextFormField(
-          controller: passwordController,
-          autocorrect: false,
-          obscureText: true,
-          keyboardType: TextInputType.text,
-          decoration: InputDecorations.defaultInputDecoration(
-            hintText: '*****',
-            labelText: 'Contraseña',
-            prefixIcon: Icons.lock_outline,
+    final LoginController c = Get.find<LoginController>();
+    return Obx(
+      () => Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(10.0),
+          border: Border.all(color: strongBlue, width: 2.0),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 10),
+          child: TextFormField(
+            controller: passwordController,
+            autocorrect: false,
+            obscureText: !c.isPasswordVisible.value,
+            keyboardType: TextInputType.text,
+            decoration:
+                InputDecorations.defaultInputDecoration(
+                  hintText: '*****',
+                  labelText: 'Contraseña',
+                  prefixIcon: Icons.lock_outline,
+                ).copyWith(
+                  suffixIcon: IconButton(
+                    onPressed: c.togglePasswordVisibility,
+                    icon: Icon(
+                      c.isPasswordVisible.value
+                          ? Icons.visibility_off_outlined
+                          : Icons.visibility_outlined,
+                    ),
+                  ),
+                ),
+            validator: (value) {
+              return (value != null && value.length >= 6)
+                  ? null
+                  : 'La contraseña debe de ser de 6 caracteres';
+            },
           ),
-          //onChanged: (value) => loginForm.password = value,
-          validator: (value) {
-            return (value != null && value.length >= 6)
-                ? null
-                : 'La contraseña debe de ser de 6 caracteres';
-          },
         ),
       ),
     );

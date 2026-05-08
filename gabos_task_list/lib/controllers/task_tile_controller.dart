@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:gabos_task_list/controllers/dashboard_controller.dart';
 import 'package:get/get.dart';
 import 'package:gabos_task_list/controllers/task_controller.dart';
 import 'package:gabos_task_list/model/model.dart';
@@ -15,6 +16,9 @@ class TaskTileController extends GetxController {
   void _notifyListChanged() {
     if (Get.isRegistered<TaskController>()) {
       Get.find<TaskController>().notifyDataChanged();
+    }
+    if (Get.isRegistered<DashboardController>()) {
+      Get.find<DashboardController>().notifyDataChanged();
     }
   }
 

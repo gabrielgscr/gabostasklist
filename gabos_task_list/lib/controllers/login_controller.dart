@@ -8,19 +8,31 @@ class LoginController extends GetxController {
   var username = ''.obs;
   var password = ''.obs;
   var remember = false.obs;
+  var isPasswordVisible = false.obs;
+
+  void togglePasswordVisibility() {
+    isPasswordVisible.value = !isPasswordVisible.value;
+  }
 
   Future<GenericResponse> login() async {
     if (username.value.isEmpty || password.value.isEmpty) {
       return GenericResponse(-1, 'Usuario y contraseña son requeridos');
     } else {
-      Person? person =
-          await Person().select().email.equals(username.value).toSingle();
+      Person? person = await Person()
+          .select()
+          .email
+          .equals(username.value)
+          .toSingle();
       if (person == null) {
         return GenericResponse(-1, 'Usuario y/o contraseña incorrecta');
       } else {
         String cyphPass = PasswordEncryption.encryptPassword(password.value);
         if (person.password == cyphPass) {
-          return GenericResponse(1, 'Usuario autenticado', responseObject: person);
+          return GenericResponse(
+            1,
+            'Usuario autenticado',
+            responseObject: person,
+          );
         } else {
           return GenericResponse(-1, 'Usuario y/o contraseña incorrecta');
         }
@@ -38,5 +50,4 @@ class LoginController extends GetxController {
     remember.value = value;
     await SharedPreferencesHelper.setBool("remember", value);
   }
-
 }

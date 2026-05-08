@@ -45,9 +45,21 @@ class TaskPanelList extends StatelessWidget {
             body: FutureBuilder(
               future: getTasks(getTasksParameter),
               builder: (context, snapshot) {
-                if (!snapshot.hasData) {
+                if (snapshot.connectionState != ConnectionState.done) {
                   return const Center(
                     child: CircularProgressIndicator()
+                  );
+                } else if (snapshot.hasError) {
+                  return Padding(
+                    padding: defaultPadding,
+                    child: const Center(
+                      child: Text('Error al cargar tareas'),
+                    ),
+                  );
+                } else if (!snapshot.hasData) {
+                  return Padding(
+                    padding: defaultPadding,
+                    child: Center(child: Text(noDataTitle)),
                   );
                 } else if (snapshot.data!.isEmpty) {
                   return Padding(

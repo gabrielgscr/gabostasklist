@@ -1,7 +1,5 @@
-import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:gabos_task_list/model/model.dart';
 import 'package:get/get.dart';
-import 'package:timezone/timezone.dart' as tz;
 
 class DashboardController extends GetxController {
   List<Task> todayTasks = <Task>[].obs;
@@ -16,12 +14,12 @@ class DashboardController extends GetxController {
     reloadKey.value++;
   }
 
+  int _currentOffsetHours() {
+    return DateTime.now().timeZoneOffset.inHours;
+  }
+
   Future<List<Task>> getTodayTasks(int personId) async {
-    final currentTimezone = getCurrentTimezone();
-    var location = tz.getLocation(await currentTimezone);
-    var now = tz.TZDateTime.now(location);
-    var offset = now.timeZoneOffset.inHours;
-    //var offset = -6;
+    final offset = _currentOffsetHours();
     todayTasks = await Task()
         .select()
         .where(
@@ -33,11 +31,7 @@ class DashboardController extends GetxController {
   }
 
   Future<List<Task>> getTomorrowTasks(int personId) async {
-    final currentTimezone = getCurrentTimezone();
-    var location = tz.getLocation(await currentTimezone);
-    var now = tz.TZDateTime.now(location);
-    var offset = now.timeZoneOffset.inHours;
-    //var offset = -6;
+    final offset = _currentOffsetHours();
     tomorrowTasks = await Task()
         .select()
         .where(
@@ -49,11 +43,7 @@ class DashboardController extends GetxController {
   }
 
   Future<List<Task>> getDueTasks(int personId) async {
-    final currentTimezone = getCurrentTimezone();
-    var location = tz.getLocation(await currentTimezone);
-    var now = tz.TZDateTime.now(location);
-    var offset = now.timeZoneOffset.inHours;
-    //var offset = -6;
+    final offset = _currentOffsetHours();
     dueTasks = await Task()
         .select()
         .where(
@@ -62,11 +52,6 @@ class DashboardController extends GetxController {
         )
         .toList();
     return dueTasks;
-  }
-
-  Future<String> getCurrentTimezone() async {
-    final currentTimezone = await FlutterTimezone.getLocalTimezone();
-    return currentTimezone.identifier;
   }
 
   void swapTodayExpanded() {

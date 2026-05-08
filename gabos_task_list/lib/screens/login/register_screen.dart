@@ -179,25 +179,37 @@ class _RegisterForm extends StatelessWidget {
 
   Widget passwordBox() {
     final RegisterController c = Get.find<RegisterController>();
-    return InputWrapper(
-      child: TextFormField(
-        autocorrect: false,
-        obscureText: true,
-        keyboardType: TextInputType.emailAddress,
-        decoration: InputDecorations.defaultInputDecoration(
-          hintText: '*****',
-          labelText: 'Contraseña',
-          prefixIcon: Icons.lock_outline,
+    return Obx(
+      () => InputWrapper(
+        child: TextFormField(
+          autocorrect: false,
+          obscureText: !c.isPasswordVisible.value,
+          keyboardType: TextInputType.emailAddress,
+          decoration:
+              InputDecorations.defaultInputDecoration(
+                hintText: '*****',
+                labelText: 'Contraseña',
+                prefixIcon: Icons.lock_outline,
+              ).copyWith(
+                suffixIcon: IconButton(
+                  onPressed: c.togglePasswordVisibility,
+                  icon: Icon(
+                    c.isPasswordVisible.value
+                        ? Icons.visibility_off_outlined
+                        : Icons.visibility_outlined,
+                  ),
+                ),
+              ),
+          onChanged: (value) {
+            c.password = value;
+            c.passwordConfirm = value;
+          },
+          validator: (value) {
+            return (value != null && value.length >= 6)
+                ? null
+                : 'La contraseña debe de ser de 6 caracteres';
+          },
         ),
-        onChanged: (value) {
-          c.password = value;
-          c.passwordConfirm = value;
-        },
-        validator: (value) {
-          return (value != null && value.length >= 6)
-              ? null
-              : 'La contraseña debe de ser de 6 caracteres';
-        },
       ),
     );
   }

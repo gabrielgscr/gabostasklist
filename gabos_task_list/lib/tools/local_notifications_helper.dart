@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:gabos_task_list/tools/constants.dart';
 import 'package:get/get.dart';
@@ -8,6 +9,9 @@ import 'dart:async';
 
 class LocalNotificationHelper {
   static const int debugNotificationBaseId = 909090;
+  static const MethodChannel _maintenanceChannel = MethodChannel(
+    'gabos_task_list/notifications_maintenance',
+  );
   static final FlutterLocalNotificationsPlugin _plugin =
       FlutterLocalNotificationsPlugin();
 
@@ -16,6 +20,32 @@ class LocalNotificationHelper {
   static final RxList<String> logs = <String>[].obs;
   static Completer<void>? _permissionRequestCompleter;
   static bool _permissionsRequestedOnce = false;
+
+  static bool _isMissingTypeParameterError(Object error) {
+    return error.toString().contains('Missing type parameter');
+  }
+
+  static Future<bool> _cleanupPersistedNotificationsIfNeeded(
+    Object error,
+  ) async {
+    if (!_isMissingTypeParameterError(error)) {
+      return false;
+    }
+
+    _log('[Notif] Detectado Missing type parameter. Limpiando estado...');
+    try {
+      if (defaultTargetPlatform == TargetPlatform.android) {
+        await _maintenanceChannel.invokeMethod<bool>(
+          'clearCorruptedNotificationState',
+        );
+      }
+      _log('[Notif] Estado de notificaciones limpiado');
+      return true;
+    } catch (cleanupError) {
+      _log('[Notif] Error al limpiar estado: $cleanupError');
+      return false;
+    }
+  }
 
   static int _normalizeNotificationId(int id) {
     return (id % 100000).abs() + 1000;
@@ -82,7 +112,7 @@ class LocalNotificationHelper {
     const settings = InitializationSettings(android: android, iOS: iOS);
 
     await _plugin.initialize(
-      settings,
+      settings: settings,
       onDidReceiveNotificationResponse: _onDidReceiveNotificationResponse,
       onDidReceiveBackgroundNotificationResponse:
           _onDidReceiveBackgroundNotificationResponse,
@@ -122,10 +152,10 @@ class LocalNotificationHelper {
     _log('[Notif] Show immediate: safeId=$safeId original=$id');
     try {
       await _plugin.show(
-        safeId,
-        title ?? 'Recordatorio',
-        body ?? '',
-        const NotificationDetails(
+        id: safeId,
+        title: title ?? 'Recordatorio',
+        body: body ?? '',
+        notificationDetails: const NotificationDetails(
           android: AndroidNotificationDetails(
             remindersChannelId,
             remindersChannelName,
@@ -164,7 +194,13 @@ class LocalNotificationHelper {
 
   static Future<List<PendingNotificationRequest>>
   getPendingNotifications() async {
-    return _plugin.pendingNotificationRequests();
+    try {
+      return await _plugin.pendingNotificationRequests();
+    } catch (e) {
+      _log('[Notif] Error obteniendo pendientes: $e');
+      await _cleanupPersistedNotificationsIfNeeded(e);
+      return <PendingNotificationRequest>[];
+    }
   }
 
   static NotificationDetails _notificationDetails() {
@@ -182,7 +218,7 @@ class LocalNotificationHelper {
 
   static AndroidScheduleMode _scheduleMode(bool preciseAllowed) {
     return preciseAllowed
-        ? AndroidScheduleMode.exactAllowWhileIdle
+        ? AndroidScheduleMode.alarmClock
         : AndroidScheduleMode.inexactAllowWhileIdle;
   }
 
@@ -199,15 +235,13 @@ class LocalNotificationHelper {
     final scheduled = tz.TZDateTime.from(scheduleDate, location);
 
     await _plugin.zonedSchedule(
-      safeId,
-      title,
-      body,
-      scheduled,
-      _notificationDetails(),
+      id: safeId,
+      title: title,
+      body: body,
+      scheduledDate: scheduled,
+      notificationDetails: _notificationDetails(),
       androidScheduleMode: _scheduleMode(preciseAllowed),
       payload: payload,
-      uiLocalNotificationDateInterpretation:
-          UILocalNotificationDateInterpretation.absoluteTime,
     );
 
     return true;
@@ -292,6 +326,29 @@ class LocalNotificationHelper {
         }
       }
 
+      if (!result) {
+        final cleaned = await _cleanupPersistedNotificationsIfNeeded(
+          Exception('Missing type parameter'),
+        );
+        if (cleaned) {
+          _log('[Notif] Reintentando tras limpieza nativa');
+          try {
+            result = await _schedule(
+              safeId,
+              scheduleDate,
+              title ?? 'Recordatorio',
+              body ?? '',
+              payload,
+              preciseAllowed,
+              true,
+            );
+          } catch (e) {
+            _log('[Notif] Reintento tras limpieza falló: $e');
+            result = false;
+          }
+        }
+      }
+
       _log('[Notif] Result: $result');
       return result;
     } catch (e) {
@@ -316,13 +373,25 @@ class LocalNotificationHelper {
 
   static Future<void> cancelDebugNotification() async {
     final safeId = _normalizeNotificationId(debugNotificationBaseId);
-    await _plugin.cancel(safeId);
-    _log('[Notif][Debug] Cancelada notificación de prueba id=$safeId');
+    try {
+      await _plugin.cancel(id: safeId);
+      _log('[Notif][Debug] Cancelada notificación de prueba id=$safeId');
+    } catch (e) {
+      _log('[Notif][Debug] Error al cancelar prueba: $e');
+      await _cleanupPersistedNotificationsIfNeeded(e);
+    }
   }
 
-  static Future<void> cancelLocalNotification(int id) async {
+  static Future<bool> cancelLocalNotification(int id) async {
     final safeId = _normalizeNotificationId(id);
-    await _plugin.cancel(safeId);
-    _log('[Notif] Cancelada notificación id=$safeId (original: $id)');
+    try {
+      await _plugin.cancel(id: safeId);
+      _log('[Notif] Cancelada notificación id=$safeId (original: $id)');
+      return true;
+    } catch (e) {
+      _log('[Notif] Error cancelando notificación id=$safeId: $e');
+      await _cleanupPersistedNotificationsIfNeeded(e);
+      return false;
+    }
   }
 }

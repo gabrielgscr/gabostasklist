@@ -1,0 +1,4 @@
+storeFile=C:/ruta/a/tu/upload-keystore.jks
+storePassword=tu_store_password
+keyAlias=tu_key_alias
+keyPassword=tu_key_password
